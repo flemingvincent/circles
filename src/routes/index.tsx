@@ -1,7 +1,7 @@
 import { NavigationContainer } from "@react-navigation/native";
 
-import { PublicStack } from "@/routes/public";
 import { ProtectedStack } from "@/routes/protected";
+import { PublicStack } from "@/routes/public";
 
 export function AppRoutes() {
 	return (
