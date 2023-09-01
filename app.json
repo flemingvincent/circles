@@ -26,6 +26,7 @@
 		},
 		"experiments": {
 			"tsconfigPaths": true
-		}
+		},
+		"owner": "cis4914-fall23"
 	}
 }
