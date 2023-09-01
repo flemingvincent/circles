@@ -1,8 +1,6 @@
-import { Button, Text } from "react-native";
-
-import { SafeAreaView } from "react-native-safe-area-context";
-
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { Button, Text } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import tw from "@/lib/tailwind";
 import { PublicStackParamList } from "@/routes/public";
