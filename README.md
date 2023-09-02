@@ -30,6 +30,6 @@ yarn start
 
 - [Christian De Guzman](https://github.com/ChristianDeGuzmanUF)
 - [Vincent Fleming](https://github.com/FlemingVincent)
-- [Jinfan Tu]()
+- [Jinfan Tu](https://github.com/VicTu946)
 - [Phillip Vanderlaat](https://github.com/pvanderlaat)
 - [Gabriel Velasquez](https://github.com/gabcoroba)
