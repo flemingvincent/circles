@@ -11,6 +11,8 @@ jobs:
     steps:
       - name: Install deps
         run: yarn install
+      - name: Install eas cli
+        run: yarn add eas-cli
       - name: Build Android APK Bundle
         run: eas build
     # steps:
