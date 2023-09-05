@@ -10,10 +10,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Setup Node
-          uses: actions/setup-node@v3
-          with:
-            node-version: 18.x
-            cache: yarn
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+          cache: yarn
       - name: Install deps
         run: yarn install
       - name: Install eas cli
