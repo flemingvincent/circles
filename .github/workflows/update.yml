@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Install deps
-          run: yarn install
+        run: yarn install
       - name: Build Android APK Bundle
         run: eas build
     # steps:
