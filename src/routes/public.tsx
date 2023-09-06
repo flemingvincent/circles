@@ -12,9 +12,20 @@ const Stack = createNativeStackNavigator<PublicStackParamList>();
 
 export function PublicStack() {
 	return (
-		<Stack.Navigator initialRouteName="Welcome">
+		<Stack.Navigator
+			initialRouteName="Welcome"
+			screenOptions={{
+				headerShown: false,
+			}}
+		>
 			<Stack.Screen name="Welcome" component={Welcome} />
-			<Stack.Screen name="Login" component={Login} />
+			<Stack.Screen
+				name="Login"
+				component={Login}
+				options={{
+					animation: "fade",
+				}}
+			/>
 		</Stack.Navigator>
 	);
 }
