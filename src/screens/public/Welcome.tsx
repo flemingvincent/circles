@@ -10,7 +10,7 @@ type WelcomeProps = NativeStackScreenProps<PublicStackParamList, "Welcome">;
 export default function Welcome({ navigation }: WelcomeProps) {
 	return (
 		<SafeAreaView style={tw`flex-1 items-center justify-center bg-white`}>
-			<Text>Welcome</Text>
+			<Text>Welcome from development branch</Text>
 			<Button
 				title="Login"
 				onPress={() => {
