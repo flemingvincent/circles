@@ -2,7 +2,8 @@ name: update
 on:
   push:
     branches:
-      - fixing-pipeline
+      - development
+      - main
 
 jobs:
   update:
