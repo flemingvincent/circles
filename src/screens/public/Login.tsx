@@ -120,7 +120,7 @@ export function Login({ navigation }: LoginProps) {
 	return (
 		<SafeAreaView style={tw`flex-1 bg-white`}>
 			<View
-				style={tw`flex-row items-center justify-center gap-x-1 pt-4 px-4 relative`}
+				style={tw`flex-row items-center justify-center gap-x-1 pt-4 pb-6 px-4 relative`}
 			>
 				<Pressable
 					style={tw`absolute left-4 top-1.5`}
@@ -150,7 +150,7 @@ export function Login({ navigation }: LoginProps) {
 				horizontal
 				pagingEnabled
 				keyboardShouldPersistTaps="always"
-				style={tw`flex-1 pt-6`}
+				style={tw`flex-1`}
 			>
 				{/* Email */}
 				<View style={tw`w-[${SCREEN_WIDTH}px] px-12`}>
