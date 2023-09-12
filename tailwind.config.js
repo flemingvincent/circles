@@ -11,6 +11,7 @@ module.exports = {
 				"content-tertiary": "#A6A6A6",
 				"content-quaternary": "#868686",
 				border: "#EFEFEF",
+				error: "#FF1631",
 			},
 		},
 	},

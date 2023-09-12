@@ -1,7 +1,6 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
-import Login from "@/screens/public/Login";
-import Welcome from "@/screens/public/Welcome";
+import { Welcome, Login } from "@/screens/public";
 
 export type PublicStackParamList = {
 	Welcome: undefined;

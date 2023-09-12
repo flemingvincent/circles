@@ -1,14 +1,13 @@
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { Button } from "@/components/ui/Button";
-import { Text } from "@/components/ui/Text";
+import { Button, Text } from "@/components/ui";
 import tw from "@/lib/tailwind";
 import { PublicStackParamList } from "@/routes/public";
 
 type WelcomeProps = NativeStackScreenProps<PublicStackParamList, "Welcome">;
 
-export default function Welcome({ navigation }: WelcomeProps) {
+export function Welcome({ navigation }: WelcomeProps) {
 	return (
 		<SafeAreaView
 			style={tw`flex-1 items-center justify-end bg-white py-4 px-12`}
