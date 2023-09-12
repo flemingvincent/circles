@@ -84,6 +84,10 @@ Most of the code lives in the `src` directory. The `src` directory contains the 
 ```sh
 src
 |
++-- assets            # assets folder can contain all the static files such as images, fonts, etc.
+|
++-- components        # shared components used across the entire application
+|
 +-- lib               # re-exporting different libraries preconfigured for the application
 |
 +-- routes            # routes configuration
@@ -96,6 +100,16 @@ src
 **TailwindCSS**
 
 TailwindCSS is a utility-first CSS framework that allows you to build custom designs without having to write custom CSS. With the help of [tailwind-react-native-classnames](https://github.com/jaredh159/tailwind-react-native-classnames) you can utilize the same beloved Tailwind CSS utility classes you are familiar with from web development, seamlessly in your React Native applications.
+
+## Error Handling
+
+**React Hook Form**
+
+React Hook Form is a library that allows you to easily create forms in React. It is used to create performant, flexible, and extensible forms with easy-to-use validation.
+
+**Zod**
+
+Zod is a TypeScript-first schema declaration and validation library. It is used in conjunction with React Hook Form to validate form data.
 
 ## Deployment
 
