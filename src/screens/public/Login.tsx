@@ -3,7 +3,14 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Image } from "expo-image";
 import { useCallback, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
-import { Dimensions, Pressable, ScrollView, View } from "react-native";
+import {
+	Dimensions,
+	KeyboardAvoidingView,
+	Platform,
+	Pressable,
+	ScrollView,
+	View,
+} from "react-native";
 import Animated, {
 	useAnimatedRef,
 	useAnimatedScrollHandler,
@@ -119,122 +126,127 @@ export function Login({ navigation }: LoginProps) {
 
 	return (
 		<SafeAreaView style={tw`flex-1 bg-white`}>
-			<View
-				style={tw`flex-row items-center justify-center gap-x-1 pt-4 pb-6 px-4 relative`}
-			>
-				<Pressable
-					style={tw`absolute left-4 top-1.5`}
-					onPress={handleScrollBackward}
-					hitSlop={24}
-				>
-					<Image
-						source={require("@/assets/icons/arrow-left.svg")}
-						style={tw`w-6 h-6`}
-					/>
-				</Pressable>
-				{/* Map through three indicators*/}
-				{[0, 1].map((index) => (
-					<ScreenIndicator
-						key={index.toString()}
-						activeIndex={activeIndex}
-						index={index}
-					/>
-				))}
-			</View>
-			<Animated.ScrollView
-				ref={scrollRef as any}
-				onScroll={scrollHandler}
-				showsHorizontalScrollIndicator={false}
-				scrollEnabled={false}
-				scrollEventThrottle={8}
-				horizontal
-				pagingEnabled
-				keyboardShouldPersistTaps="always"
+			<KeyboardAvoidingView
 				style={tw`flex-1`}
+				behavior={Platform.OS === "ios" ? "padding" : "height"}
 			>
-				{/* Email */}
-				<View style={tw`w-[${SCREEN_WIDTH}px] px-12`}>
-					<Text variant="title1" weight="semibold" style={tw`mb-4`}>
-						Email
-					</Text>
-					<Text
-						variant="callout"
-						weight="semibold"
-						style={tw`text-content-secondary mb-6`}
+				<View
+					style={tw`flex-row items-center justify-center gap-x-1 pt-4 pb-6 px-4 relative`}
+				>
+					<Pressable
+						style={tw`absolute left-4 top-1.5`}
+						onPress={handleScrollBackward}
+						hitSlop={24}
 					>
-						Enter your email address.
-					</Text>
-					<Controller
-						control={control}
-						name="email"
-						render={({ field: { onChange, value } }) => (
-							<Input
-								placeholder="Email"
-								description="Enter the email address associated with your account."
-								error={errors.email?.message}
-								autoComplete="email"
-								keyboardType="email-address"
-								value={value}
-								onChangeText={onChange}
-							/>
-						)}
+						<Image
+							source={require("@/assets/icons/arrow-left.svg")}
+							style={tw`w-6 h-6`}
+						/>
+					</Pressable>
+					{/* Map through two indicators*/}
+					{[0, 1].map((index) => (
+						<ScreenIndicator
+							key={index.toString()}
+							activeIndex={activeIndex}
+							index={index}
+						/>
+					))}
+				</View>
+				<Animated.ScrollView
+					ref={scrollRef as any}
+					onScroll={scrollHandler}
+					showsHorizontalScrollIndicator={false}
+					scrollEnabled={false}
+					scrollEventThrottle={8}
+					horizontal
+					pagingEnabled
+					keyboardShouldPersistTaps="always"
+					style={tw`flex-1`}
+				>
+					{/* Email */}
+					<View style={tw`w-[${SCREEN_WIDTH}px] px-12`}>
+						<Text variant="title1" weight="semibold" style={tw`mb-4`}>
+							Email
+						</Text>
+						<Text
+							variant="callout"
+							weight="semibold"
+							style={tw`text-content-secondary mb-6`}
+						>
+							Enter your email address.
+						</Text>
+						<Controller
+							control={control}
+							name="email"
+							render={({ field: { onChange, value } }) => (
+								<Input
+									placeholder="Email"
+									description="Enter the email address associated with your account."
+									error={errors.email?.message}
+									autoComplete="email"
+									keyboardType="email-address"
+									value={value}
+									onChangeText={onChange}
+								/>
+							)}
+						/>
+					</View>
+					{/* Password */}
+					<View style={tw`w-[${SCREEN_WIDTH}px] px-12`}>
+						<Text variant="title1" weight="semibold" style={tw`mb-4`}>
+							Enter Password
+						</Text>
+						<Text
+							variant="callout"
+							weight="semibold"
+							style={tw`text-content-secondary mb-6`}
+						>
+							Enter your password.
+						</Text>
+						<Controller
+							control={control}
+							name="password"
+							render={({ field: { onChange, value } }) => (
+								<Input
+									placeholder="Password"
+									icon={
+										<Pressable
+											onPress={() => {
+												setIsPasswordVisible(!isPasswordVisible);
+											}}
+											hitSlop={24}
+										>
+											<Image
+												source={
+													isPasswordVisible
+														? require("@/assets/icons/eye-close.svg")
+														: require("@/assets/icons/eye.svg")
+												}
+												style={tw`w-6 h-6`}
+											/>
+										</Pressable>
+									}
+									secureTextEntry={!isPasswordVisible}
+									description="Enter the password associated with your account."
+									error={errors.password?.message}
+									value={value}
+									onChangeText={onChange}
+									maxLength={64}
+								/>
+							)}
+						/>
+					</View>
+				</Animated.ScrollView>
+				<View style={tw`px-12`}>
+					<Button
+						variant="secondary"
+						label="Continue"
+						style={tw`mb-4`}
+						onPress={handleScrollForward}
+						loading={isSubmitting}
 					/>
 				</View>
-				{/* Password */}
-				<View style={tw`w-[${SCREEN_WIDTH}px] px-12`}>
-					<Text variant="title1" weight="semibold" style={tw`mb-4`}>
-						Enter Password
-					</Text>
-					<Text
-						variant="callout"
-						weight="semibold"
-						style={tw`text-content-secondary mb-6`}
-					>
-						Enter your password.
-					</Text>
-					<Controller
-						control={control}
-						name="password"
-						render={({ field: { onChange, value } }) => (
-							<Input
-								placeholder="Password"
-								icon={
-									<Pressable
-										onPress={() => {
-											setIsPasswordVisible(!isPasswordVisible);
-										}}
-										hitSlop={24}
-									>
-										<Image
-											source={
-												isPasswordVisible
-													? require("@/assets/icons/eye-close.svg")
-													: require("@/assets/icons/eye.svg")
-											}
-											style={tw`w-6 h-6`}
-										/>
-									</Pressable>
-								}
-								secureTextEntry={!isPasswordVisible}
-								description="Enter the password associated with your account."
-								error={errors.password?.message}
-								value={value}
-								onChangeText={onChange}
-								maxLength={64}
-							/>
-						)}
-					/>
-				</View>
-			</Animated.ScrollView>
-			<View style={tw`px-12`}>
-				<Button
-					variant="secondary"
-					label="Continue"
-					style={tw`mb-4`}
-					onPress={handleScrollForward}
-					loading={isSubmitting}
-				/>
-			</View>
+			</KeyboardAvoidingView>
 		</SafeAreaView>
 	);
 }
