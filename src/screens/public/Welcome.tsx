@@ -18,7 +18,14 @@ export function Welcome({ navigation }: WelcomeProps) {
 			<Text style={tw`text-content-secondary text-center mb-6`}>
 				Stay in the loop with your closest friends and family.
 			</Text>
-			<Button variant="primary" label="Create Account" style={tw`mb-4`} />
+			<Button
+				variant="primary"
+				label="Create Account"
+				style={tw`mb-4`}
+				onPress={() => {
+					navigation.navigate("CreateAccount");
+				}}
+			/>
 			<Button
 				variant="outline"
 				label="Login"
