@@ -3,6 +3,7 @@ import Animated, {
 	useAnimatedStyle,
 	withTiming,
 } from "react-native-reanimated";
+import { forwardRef } from 'react';
 
 import { Text } from "./Text";
 
@@ -15,13 +16,8 @@ interface InputProps extends TextInputProps {
 	error?: string;
 }
 
-export function Input({
-	icon,
-	indicator,
-	description,
-	error,
-	...props
-}: InputProps) {
+export const Input = forwardRef((props: InputProps, ref: React.Ref<TextInput>) => {
+	const { icon, indicator, description, error, ...otherProps } = props;
 	const rErrorStyle = useAnimatedStyle(() => {
 		return {
 			opacity: error
@@ -38,6 +34,7 @@ export function Input({
 		<>
 			<View style={tw`flex-row items-center gap-x-4`}>
 				<TextInput
+					ref={ref}
 					style={[
 						tw`flex-1 body text-content-primary`,
 						{
@@ -75,4 +72,4 @@ export function Input({
 			)}
 		</>
 	);
-}
+})
