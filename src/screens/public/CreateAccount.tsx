@@ -72,17 +72,17 @@ export function CreateAccount({ navigation }: CreateAccountProps) {
 		useRef<TextInput>(null),
 		useRef<TextInput>(null),
 	];
-	let currTextInput = 0
+	let currTextInput = 0;
 
 	const openNextTextInput = () => {
-		currTextInput += 1
+		currTextInput += 1;
 		textInputRefs[currTextInput]?.current?.focus();
-	}
+	};
 
 	const openPrevTextInput = () => {
-		currTextInput -= 1
+		currTextInput -= 1;
 		textInputRefs[currTextInput]?.current?.focus();
-	}
+	};
 
 	const [isUsernameAvailable, setIsUsernameAvailable] = useState<
 		boolean | null
@@ -108,7 +108,7 @@ export function CreateAccount({ navigation }: CreateAccountProps) {
 					scrollRef.current?.scrollTo({
 						x: SCREEN_WIDTH * (activeIndex.value + 1),
 					});
-					openNextTextInput()
+					openNextTextInput();
 				}
 			});
 		}
@@ -119,7 +119,7 @@ export function CreateAccount({ navigation }: CreateAccountProps) {
 					scrollRef.current?.scrollTo({
 						x: SCREEN_WIDTH * (activeIndex.value + 1),
 					});
-					openNextTextInput()
+					openNextTextInput();
 				}
 			});
 		}
@@ -131,7 +131,7 @@ export function CreateAccount({ navigation }: CreateAccountProps) {
 					scrollRef.current?.scrollTo({
 						x: SCREEN_WIDTH * (activeIndex.value + 1),
 					});
-					openNextTextInput()
+					openNextTextInput();
 				}
 			});
 		}
@@ -142,7 +142,7 @@ export function CreateAccount({ navigation }: CreateAccountProps) {
 					scrollRef.current?.scrollTo({
 						x: SCREEN_WIDTH * (activeIndex.value + 1),
 					});
-					openNextTextInput()
+					openNextTextInput();
 				}
 			});
 		}
@@ -153,7 +153,7 @@ export function CreateAccount({ navigation }: CreateAccountProps) {
 					scrollRef.current?.scrollTo({
 						x: SCREEN_WIDTH * (activeIndex.value + 1),
 					});
-					openNextTextInput()
+					openNextTextInput();
 				}
 			});
 		}
@@ -173,7 +173,7 @@ export function CreateAccount({ navigation }: CreateAccountProps) {
 		}
 
 		// Focus the previous text input
-		openPrevTextInput()
+		openPrevTextInput();
 
 		scrollRef.current?.scrollTo({ x: SCREEN_WIDTH * (activeIndex.value - 1) });
 	}, []);
