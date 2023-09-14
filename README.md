@@ -121,6 +121,30 @@ GitHub Actions is a CI/CD tool that allows you to automate your software develop
 
 Expo Application Services (EAS) is a set of tools that allow you to build, deploy, and manage your Expo applications. This project has been configured to automatically build and deploy the application to Expo whenever a new commit is pushed to the `main` or `development` branch.
 
+## Contributing
+
+Assuming you've already completed the setup, to start contributing please follow these steps:
+
+1. **Create a new branch:** Before making any changes, create a new branch with a descriptive name. Follow this convention to choose an appropriate prefix for your branch name:
+
+   - `hotfix`: For quickly fixing critical issues, usually with a temporary solution.
+   - `bugfix`: For fixing a bug.
+   - `feature`: For adding, removing, or modifying a feature.
+   - `test`: For experimenting with something which is not an issue.
+   - `wip`: For a work in progress.
+
+   Example: `feature/update-readme`
+
+2. **Make Changes:** Implement the desired changes in your branch.
+
+3. **Test Changes:** Before proceeding, ensure that your changes work as expected.
+
+4. **Push Branch and Open a Pull Request:** Once you're confident in your changes, push your branch to the repository and open a pull request from your branch into the development branch.
+
+5. **Merge Pull Request:** After review and approval, your pull request will be merged into the development branch.
+
+**Note:** Please ensure that you base your branch off the development branch, not the main branch.
+
 ## Authors
 
 - [Christian De Guzman](https://github.com/ChristianDeGuzmanUF)
