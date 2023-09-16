@@ -1,16 +1,24 @@
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
+import { initializeApp } from "firebase/app";
 import { StatusBar } from "expo-status-bar";
+
 import { useEffect } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useDeviceContext } from "twrnc";
 
 import tw from "@/lib/tailwind";
 import { AppRoutes } from "@/routes";
+import { firebase, firebaseConfig } from "firebase/firebase";
 
 SplashScreen.preventAutoHideAsync();
 
 export default function App() {
+	// Initialize Firebase
+	if (!firebase.getApps.length) {
+		firebase.initializeApp(firebaseConfig);
+	}
+
 	useDeviceContext(tw);
 
 	const [loaded, error] = useFonts({

@@ -1,6 +1,8 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Image } from "expo-image";
+import { getAuth } from "firebase/auth";
+import { firebase } from "firebase/firebase";
 import { useCallback, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import {
@@ -23,9 +25,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import * as z from "zod";
 
 import { Button, Input, Text } from "@/components/ui";
+import { signUpWithEmailAndPassword } from "@/firebase/auth-wrapper";
 import tw from "@/lib/tailwind";
 import { PublicStackParamList } from "@/routes/public";
-
 type CreateAccountProps = NativeStackScreenProps<
 	PublicStackParamList,
 	"CreateAccount"
@@ -206,13 +208,15 @@ export function CreateAccount({ navigation }: CreateAccountProps) {
 
 	async function onSubmit(data: z.infer<typeof formSchema>) {
 		try {
-			// TODO: handle firebase authentication here
-			console.log(data);
+			// Firebase authentication
+			const { email, password } = data; 
+			// Calling wrapper function from auth-wrap
+			await signUpWithEmailAndPassword(email, password);
+			console.log("User signed up:", email);
 		} catch (error) {
-			console.error(error);
+			console.error("Firebase authorization error: ", error);
 		}
 	}
-
 	return (
 		<SafeAreaView style={tw`flex-1 bg-white`}>
 			<KeyboardAvoidingView
