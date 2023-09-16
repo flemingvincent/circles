@@ -1,6 +1,8 @@
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { initializeApp } from "firebase/app";
+import { StatusBar } from "expo-status-bar";
+
 import { useEffect } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useDeviceContext } from "twrnc";
@@ -38,6 +40,7 @@ export default function App() {
 
 	return (
 		<SafeAreaProvider>
+			<StatusBar style="dark" />
 			<AppRoutes />
 		</SafeAreaProvider>
 	);
