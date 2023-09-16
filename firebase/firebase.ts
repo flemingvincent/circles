@@ -3,7 +3,7 @@ import "firebase/auth";
 
 const firebaseConfig = {
     apiKey: "AIzaSyDZkGbZNNd6MG-eXBYhzcvBYL6YGsjn8lk",
-    authDomain: "YOUR_AUTH_DOMAIN",
+    authDomain: "circles-da7a6.firebaseapp.com",
     projectId: "circles-da7a6",
     storageBucket: "circles-da7a6.appspot.com",
 //    messagingSenderId: "YOUR_MESSAGING_SENDER_ID", //This is for push notifications later
