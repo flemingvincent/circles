@@ -5,18 +5,13 @@ import { useEffect } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useDeviceContext } from "twrnc";
 
-import { firebaseConfig, firebase } from "@/config/firebase";
 import tw from "@/lib/tailwind";
+import { FirebaseProvider } from "@/providers/AuthProvider";
 import { AppRoutes } from "@/routes";
 
 SplashScreen.preventAutoHideAsync();
 
 export default function App() {
-	// Initialize Firebase
-	if (!firebase.getApps.length) {
-		firebase.initializeApp(firebaseConfig);
-	}
-
 	useDeviceContext(tw);
 
 	const [loaded, error] = useFonts({
@@ -31,15 +26,21 @@ export default function App() {
 	}, [error]);
 
 	useEffect(() => {
-		if (loaded) SplashScreen.hideAsync();
+		if (loaded) {
+			setTimeout(() => {
+				SplashScreen.hideAsync();
+			}, 1000);
+		}
 	}, [loaded]);
 
 	if (!loaded) return null;
 
 	return (
-		<SafeAreaProvider>
-			<StatusBar style="dark" />
-			<AppRoutes />
-		</SafeAreaProvider>
+		<FirebaseProvider>
+			<SafeAreaProvider>
+				<StatusBar style="dark" />
+				<AppRoutes />
+			</SafeAreaProvider>
+		</FirebaseProvider>
 	);
 }

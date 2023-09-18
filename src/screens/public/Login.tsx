@@ -23,8 +23,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import * as z from "zod";
 
 import { Button, Input, Text } from "@/components/ui";
+import { useAuth } from "@/hooks/useAuth";
 import tw from "@/lib/tailwind";
-import { _signInWithEmailAndPassword } from "@/providers/auth-wrapper";
 import { PublicStackParamList } from "@/routes/public";
 
 type LoginProps = NativeStackScreenProps<PublicStackParamList, "Login">;
@@ -57,6 +57,8 @@ const ScreenIndicator = ({
 export function Login({ navigation }: LoginProps) {
 	const scrollRef = useAnimatedRef<ScrollView>();
 	const translateX = useSharedValue(0);
+	const { login } = useAuth();
+
 	const [isPasswordVisible, setIsPasswordVisible] = useState<boolean>(false);
 
 	const scrollHandler = useAnimatedScrollHandler({
@@ -119,14 +121,13 @@ export function Login({ navigation }: LoginProps) {
 
 	async function onSubmit(data: z.infer<typeof formSchema>) {
 		try {
-			// Firebase authentication
 			const { email, password } = data;
-			// Calling wrapper function from auth-wrap
-			await _signInWithEmailAndPassword(email, password);
 
-			// TODO: Navigate to the next screen
+			await login(email, password);
+
 			console.log("User signed in:", email);
 		} catch (error) {
+			// TODO: Handle Error, show toast (Vincent, Phillip)
 			console.error("Firebase authorization error: ", error);
 		}
 	}

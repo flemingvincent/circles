@@ -23,8 +23,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import * as z from "zod";
 
 import { Button, Input, Text } from "@/components/ui";
+import { useAuth } from "@/hooks/useAuth";
 import tw from "@/lib/tailwind";
-import { _signUpWithEmailAndPassword } from "@/providers/auth-wrapper";
 import { PublicStackParamList } from "@/routes/public";
 type CreateAccountProps = NativeStackScreenProps<
 	PublicStackParamList,
@@ -59,6 +59,7 @@ const ScreenIndicator = ({
 export function CreateAccount({ navigation }: CreateAccountProps) {
 	const scrollRef = useAnimatedRef<ScrollView>();
 	const translateX = useSharedValue(0);
+	const { createAccount } = useAuth();
 
 	const [isUsernameAvailable, setIsUsernameAvailable] = useState<
 		boolean | null
@@ -100,7 +101,7 @@ export function CreateAccount({ navigation }: CreateAccountProps) {
 
 		if (activeIndex.value === 2) {
 			trigger("username").then((isValid) => {
-				// TODO: check if username is available
+				// TODO: Check if username is available in firestore
 				if (isValid) {
 					scrollRef.current?.scrollTo({
 						x: SCREEN_WIDTH * (activeIndex.value + 1),
@@ -206,17 +207,14 @@ export function CreateAccount({ navigation }: CreateAccountProps) {
 
 	async function onSubmit(data: z.infer<typeof formSchema>) {
 		try {
-			// Firebase authentication
 			const { email, password } = data;
-			// Calling wrapper function from auth-wrap
-			await _signUpWithEmailAndPassword(email, password);
 
-			// TODO: show a message to the user that sign up is successful
+			// TODO: Update createAccount function to include firstName, lastName, username, etc.
+			await createAccount(email, password);
+
 			console.log("User signed up:", email);
-
-			// This will navigate to the login screen
-			// navigation.navigate("Login");
 		} catch (error) {
+			// TODO: Handle Error, show toast (Vincent, Phillip)
 			console.error("Firebase authorization error: ", error);
 		}
 	}
