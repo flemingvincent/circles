@@ -23,8 +23,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import * as z from "zod";
 
 import { Button, Input, Text } from "@/components/ui";
-import { _signUpWithEmailAndPassword } from "@/firebase/auth-wrapper";
 import tw from "@/lib/tailwind";
+import { _signUpWithEmailAndPassword } from "@/providers/auth-wrapper";
 import { PublicStackParamList } from "@/routes/public";
 type CreateAccountProps = NativeStackScreenProps<
 	PublicStackParamList,
@@ -207,14 +207,14 @@ export function CreateAccount({ navigation }: CreateAccountProps) {
 	async function onSubmit(data: z.infer<typeof formSchema>) {
 		try {
 			// Firebase authentication
-			const { email, password } = data; 
+			const { email, password } = data;
 			// Calling wrapper function from auth-wrap
 			await _signUpWithEmailAndPassword(email, password);
 
 			// TODO: show a message to the user that sign up is successful
 			console.log("User signed up:", email);
-			 
-			// This will navigate to the login screen		 
+
+			// This will navigate to the login screen
 			// navigation.navigate("Login");
 		} catch (error) {
 			console.error("Firebase authorization error: ", error);
