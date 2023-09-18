@@ -88,7 +88,11 @@ src
 |
 +-- components        # shared components used across the entire application
 |
++-- config						# all the global configuration, env variables etc. get exported from here and used in the app
+|
 +-- lib               # re-exporting different libraries preconfigured for the application
+|
++-- providers					# all of the application providers
 |
 +-- routes            # routes configuration
 |
