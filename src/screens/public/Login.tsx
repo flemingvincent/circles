@@ -23,6 +23,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import * as z from "zod";
 
 import { Button, Input, Text } from "@/components/ui";
+import { _signInWithEmailAndPassword } from "@/firebase/auth-wrapper";
 import tw from "@/lib/tailwind";
 import { PublicStackParamList } from "@/routes/public";
 
@@ -116,11 +117,17 @@ export function Login({ navigation }: LoginProps) {
 		resolver: zodResolver(formSchema),
 	});
 
-	async function onSubmit(data: z.infer<typeof formSchema>) {
+	async function onSubmit(data: z.infer<typeof formSchema>) {	
 		try {
-			// TODO: handle firebase authentication here
+			// Firebase authentication
+			const { email, password } = data; 
+			// Calling wrapper function from auth-wrap
+			await _signInWithEmailAndPassword(email, password);
+
+			// TODO: Navigate to the next screen
+			console.log("User signed in:", email);
 		} catch (error) {
-			console.error(error);
+			console.error("Firebase authorization error: ", error);
 		}
 	}
 

@@ -211,8 +211,11 @@ export function CreateAccount({ navigation }: CreateAccountProps) {
 			// Calling wrapper function from auth-wrap
 			await _signUpWithEmailAndPassword(email, password);
 
-			// TODO: Navigate to the next screen
+			// TODO: show a message to the user that sign up is successful
 			console.log("User signed up:", email);
+			 
+			// This will navigate to the login screen		 
+			// navigation.navigate("Login");
 		} catch (error) {
 			console.error("Firebase authorization error: ", error);
 		}
