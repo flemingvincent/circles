@@ -3,15 +3,7 @@ import {
 	createUserWithEmailAndPassword,
 	signInWithEmailAndPassword,
 } from "firebase/auth";
-import {
-	getFirestore,
-	collection,
-	doc,
-	setDoc,
-	query,
-	where,
-	getDocs,
-} from "firebase/firestore";
+import { doc, setDoc, getDoc } from "firebase/firestore";
 import { createContext, useEffect, useState } from "react";
 
 import { auth, db } from "@/config/firebase";
@@ -55,26 +47,28 @@ export const FirebaseProvider = ({ children }: any) => {
 			);
 			const user = result.user;
 
-			// Add user to Firestore Collection
-			// const usersCollection = collection(db, "users");
+			// Check if user document already exists in Firestore based on UID (document ID)
+			const docRef = doc(db, "users", user.uid);
+			const docSnapshot = await getDoc(docRef);
 
-			// Check if user already in collection
-			// const userQuery = query(usersCollection, where("uid", "==", user.uid));
-			// const queryResult = await getDocs(userQuery);
+			if (docSnapshot.exists()) {
+				console.error("User already exists:", docSnapshot.data());
+				//TODO: Handle this case
+				return null; 
+			} else {
+				// Add new user document not in collection
+				await setDoc(docRef, {
+					email,
+					username,
+					firstName,
+					lastName,
+				});
 
-			// Add new user if not in collection
-			//		if (queryResult.empty) {
-			await setDoc(doc(db, "users", user.uid), {
-				email,
-				username,
-				firstName,
-				lastName,
-			});
-			//		}
+				// Update the 'user' state with the authenticated user
+				setUser(user);
 
-			setUser(user);
-
-			return user;
+				return user;
+			}
 		} catch (error) {
 			throw error;
 		}
