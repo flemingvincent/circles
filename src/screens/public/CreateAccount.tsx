@@ -459,7 +459,7 @@ export function CreateAccount({ navigation }: CreateAccountProps) {
 										</Pressable>
 									}
 									secureTextEntry={!isPasswordVisible}
-									description="Strong passwords are often 10 characters or more and include a special character and a number."
+									description="Strong passwords consist of at least 10 characters and should include a combination of uppercase and lowercase letters, special characters, and numbers."
 									error={errors.password?.message}
 									value={value}
 									onChangeText={onChange}
