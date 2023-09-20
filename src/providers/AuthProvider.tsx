@@ -58,20 +58,26 @@ export const FirebaseProvider = ({ children }: any) => {
 			const db = getFirestore();
 			const usersCollection = collection(db, "users");
 
-			// Check if user already in collection
-			const userQuery = query(usersCollection, where("email", "==", email));
-			const queryResult = await getDocs(userQuery);
-
-			// Add new user if not in collection
-			if (queryResult.empty) {
-				await addDoc(usersCollection, {
-					uid: user.uid,
+			// Check if the "users" collection exists, and create it if it doesn't
+			const collectionRef = usersCollection.withConverter({
+				toFirestore: (user) => ({
+					uid: result.user.uid,
 					email,
 					username,
 					firstName,
 					lastName,
-				});
-			}
+				}),
+				fromFirestore: (snapshot) => snapshot.data(),
+			});
+
+			// Attempt to add a new user document with user data
+			await addDoc(collectionRef, {
+				uid: user.uid,
+				email,
+				username,
+				firstName,
+				lastName,
+			});
 
 			setUser(user);
 
