@@ -18,7 +18,7 @@ interface InputProps extends TextInputProps {
 
 export const Input = forwardRef(
 	(props: InputProps, ref: React.Ref<TextInput>) => {
-		const { icon, indicator, description, error } = props;
+		const { icon, indicator, description, error, ...otherProps } = props;
 		const rErrorStyle = useAnimatedStyle(() => {
 			return {
 				opacity: error
