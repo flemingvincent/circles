@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Image } from "expo-image";
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import {
 	Dimensions,
@@ -9,6 +9,7 @@ import {
 	Platform,
 	Pressable,
 	ScrollView,
+	TextInput,
 	View,
 } from "react-native";
 import Animated, {
@@ -59,6 +60,24 @@ export function Login({ navigation }: LoginProps) {
 	const translateX = useSharedValue(0);
 	const { login } = useAuth();
 
+	// The following two variables and functions are used to automatically focus the inputs.
+	type TextInputRef = React.RefObject<TextInput>;
+	const textInputRefs: TextInputRef[] = [
+		useRef<TextInput>(null),
+		useRef<TextInput>(null),
+	];
+	let currTextInput = 0;
+
+	const openNextTextInput = () => {
+		currTextInput += 1;
+		textInputRefs[currTextInput]?.current?.focus();
+	};
+
+	const openPrevTextInput = () => {
+		currTextInput -= 1;
+		textInputRefs[currTextInput]?.current?.focus();
+	};
+
 	const [isPasswordVisible, setIsPasswordVisible] = useState<boolean>(false);
 
 	const scrollHandler = useAnimatedScrollHandler({
@@ -80,6 +99,7 @@ export function Login({ navigation }: LoginProps) {
 					});
 				}
 			});
+			openNextTextInput();
 		}
 
 		if (activeIndex.value === 1) {
@@ -96,6 +116,8 @@ export function Login({ navigation }: LoginProps) {
 		if (activeIndex.value === 0) {
 			navigation.goBack();
 		}
+		// Focus the previous text input
+		openPrevTextInput();
 		scrollRef.current?.scrollTo({ x: SCREEN_WIDTH * (activeIndex.value - 1) });
 	}, []);
 
@@ -188,6 +210,7 @@ export function Login({ navigation }: LoginProps) {
 							name="email"
 							render={({ field: { onChange, value } }) => (
 								<Input
+									ref={textInputRefs[0]}
 									placeholder="Email"
 									description="Enter the email address associated with your account."
 									error={errors.email?.message}
@@ -216,6 +239,7 @@ export function Login({ navigation }: LoginProps) {
 							name="password"
 							render={({ field: { onChange, value } }) => (
 								<Input
+									ref={textInputRefs[1]}
 									placeholder="Password"
 									icon={
 										<Pressable

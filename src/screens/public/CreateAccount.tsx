@@ -75,7 +75,6 @@ export function CreateAccount({ navigation }: CreateAccountProps) {
 	let currTextInput = 0;
 
 	const openNextTextInput = () => {
-		console.log(currTextInput);
 		currTextInput += 1;
 		textInputRefs[currTextInput]?.current?.focus();
 	};
