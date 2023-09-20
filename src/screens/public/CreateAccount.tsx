@@ -241,10 +241,7 @@ export function CreateAccount({ navigation }: CreateAccountProps) {
 		try {
 			const { email, password, username, firstName, lastName } = data;
 
-			// TODO: Update createAccount function to include firstName, lastName, username, etc.
 			await createAccount(email, password, username, firstName, lastName);
-
-			console.log("User signed up:", email);
 		} catch (error) {
 			// TODO: Handle Error, show toast (Vincent, Phillip)
 			console.error("Firebase authorization error: ", error);

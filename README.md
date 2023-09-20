@@ -88,15 +88,19 @@ src
 |
 +-- components        # shared components used across the entire application
 |
-+-- config						# all the global configuration, env variables etc. get exported from here and used in the app
++-- config            # all the global configuration, env variables etc. get exported from here and used in the app
 |
 +-- lib               # re-exporting different libraries preconfigured for the application
 |
-+-- providers					# all of the application providers
++-- providers         # all of the application providers
 |
 +-- routes            # routes configuration
 |
 +-- screens           # application screens
+|
++-- stores            # global state stores
+|
++-- types             # base types used across the application
 ```
 
 ## Components and Styling
@@ -104,6 +108,16 @@ src
 **TailwindCSS**
 
 TailwindCSS is a utility-first CSS framework that allows you to build custom designs without having to write custom CSS. With the help of [tailwind-react-native-classnames](https://github.com/jaredh159/tailwind-react-native-classnames) you can utilize the same beloved Tailwind CSS utility classes you are familiar with from web development, seamlessly in your React Native applications.
+
+## State Management
+
+**Component State (useState)**
+
+This is the state the only a component needs, and it is not meant to be shared anywhere else. But you can pass it as prop to children components if needed. Most of the time, you want to start from here and lift the state up if needed elsewhere. For this type of state, you will usually need:
+
+**Zustand**
+
+Zustand is a small, fast and scalable state management library that provides a minimal API to build scalable React applications. It is used to manage global state in the application.
 
 ## Error Handling
 
