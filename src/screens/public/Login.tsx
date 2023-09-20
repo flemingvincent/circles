@@ -23,7 +23,7 @@ import Animated, {
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as z from "zod";
 
-import { Button, Input, Text } from "@/components/ui";
+import { Button, Input, Text, Alert } from "@/components/ui";
 import { useAuth } from "@/hooks/useAuth";
 import tw from "@/lib/tailwind";
 import { PublicStackParamList } from "@/routes/public";
@@ -57,6 +57,7 @@ const ScreenIndicator = ({
 
 export function Login({ navigation }: LoginProps) {
 	const scrollRef = useAnimatedRef<ScrollView>();
+	const alertRef = useRef<any>(null);
 	const translateX = useSharedValue(0);
 	const { login } = useAuth();
 
@@ -146,13 +147,18 @@ export function Login({ navigation }: LoginProps) {
 
 			await login(email, password);
 		} catch (error) {
-			// TODO: Handle Error, show toast (Vincent, Phillip)
-			console.error("Firebase authorization error: ", error);
+			console.log("Firebase authorization error: ", error);
+			alertRef.current?.showAlert({
+				title: "Oops!",
+				message: "Something went wrong.",
+				variant: "error",
+			});
 		}
 	}
 
 	return (
 		<SafeAreaView style={tw`flex-1 bg-white`}>
+			<Alert ref={alertRef} />
 			<KeyboardAvoidingView
 				style={tw`flex-1`}
 				behavior={Platform.OS === "ios" ? "padding" : "height"}
