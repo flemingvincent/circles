@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Image } from "expo-image";
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import {
 	Dimensions,
@@ -9,6 +9,7 @@ import {
 	Platform,
 	Pressable,
 	ScrollView,
+	TextInput,
 	View,
 } from "react-native";
 import Animated, {
@@ -61,6 +62,29 @@ export function CreateAccount({ navigation }: CreateAccountProps) {
 	const translateX = useSharedValue(0);
 	const { createAccount } = useAuth();
 
+	// The following two variables and functions are used to automatically focus the inputs.
+	type TextInputRef = React.RefObject<TextInput>;
+	const textInputRefs: TextInputRef[] = [
+		useRef<TextInput>(null),
+		useRef<TextInput>(null),
+		useRef<TextInput>(null),
+		useRef<TextInput>(null),
+		useRef<TextInput>(null),
+		useRef<TextInput>(null),
+	];
+	let currTextInput = 0;
+
+	const openNextTextInput = () => {
+		console.log(currTextInput);
+		currTextInput += 1;
+		textInputRefs[currTextInput]?.current?.focus();
+	};
+
+	const openPrevTextInput = () => {
+		currTextInput -= 1;
+		textInputRefs[currTextInput]?.current?.focus();
+	};
+
 	const [isUsernameAvailable, setIsUsernameAvailable] = useState<
 		boolean | null
 	>(null);
@@ -85,6 +109,7 @@ export function CreateAccount({ navigation }: CreateAccountProps) {
 					scrollRef.current?.scrollTo({
 						x: SCREEN_WIDTH * (activeIndex.value + 1),
 					});
+					openNextTextInput();
 				}
 			});
 		}
@@ -95,6 +120,7 @@ export function CreateAccount({ navigation }: CreateAccountProps) {
 					scrollRef.current?.scrollTo({
 						x: SCREEN_WIDTH * (activeIndex.value + 1),
 					});
+					openNextTextInput();
 				}
 			});
 		}
@@ -106,6 +132,7 @@ export function CreateAccount({ navigation }: CreateAccountProps) {
 					scrollRef.current?.scrollTo({
 						x: SCREEN_WIDTH * (activeIndex.value + 1),
 					});
+					openNextTextInput();
 				}
 			});
 		}
@@ -116,6 +143,7 @@ export function CreateAccount({ navigation }: CreateAccountProps) {
 					scrollRef.current?.scrollTo({
 						x: SCREEN_WIDTH * (activeIndex.value + 1),
 					});
+					openNextTextInput();
 				}
 			});
 		}
@@ -126,6 +154,7 @@ export function CreateAccount({ navigation }: CreateAccountProps) {
 					scrollRef.current?.scrollTo({
 						x: SCREEN_WIDTH * (activeIndex.value + 1),
 					});
+					openNextTextInput();
 				}
 			});
 		}
@@ -143,6 +172,10 @@ export function CreateAccount({ navigation }: CreateAccountProps) {
 		if (activeIndex.value === 0) {
 			navigation.goBack();
 		}
+
+		// Focus the previous text input
+		openPrevTextInput();
+
 		scrollRef.current?.scrollTo({ x: SCREEN_WIDTH * (activeIndex.value - 1) });
 	}, []);
 
@@ -274,6 +307,7 @@ export function CreateAccount({ navigation }: CreateAccountProps) {
 							name="firstName"
 							render={({ field: { onChange, value } }) => (
 								<Input
+									ref={textInputRefs[0]}
 									placeholder="First Name"
 									description="Your name will be displayed on your profile."
 									error={errors.firstName?.message}
@@ -300,6 +334,7 @@ export function CreateAccount({ navigation }: CreateAccountProps) {
 							name="lastName"
 							render={({ field: { onChange, value } }) => (
 								<Input
+									ref={textInputRefs[1]}
 									placeholder="Last Name"
 									description="Your name will be displayed on your profile."
 									error={errors.lastName?.message}
@@ -326,6 +361,7 @@ export function CreateAccount({ navigation }: CreateAccountProps) {
 							name="username"
 							render={({ field: { onChange, value } }) => (
 								<Input
+									ref={textInputRefs[2]}
 									placeholder="Username"
 									description="Your username will be displayed on your profile."
 									indicator={
@@ -371,6 +407,7 @@ export function CreateAccount({ navigation }: CreateAccountProps) {
 							name="email"
 							render={({ field: { onChange, value } }) => (
 								<Input
+									ref={textInputRefs[3]}
 									placeholder="Email"
 									description="Your email address will be used to sign into your account."
 									error={errors.email?.message}
@@ -399,6 +436,7 @@ export function CreateAccount({ navigation }: CreateAccountProps) {
 							name="password"
 							render={({ field: { onChange, value } }) => (
 								<Input
+									ref={textInputRefs[4]}
 									placeholder="Password"
 									icon={
 										<Pressable
@@ -474,6 +512,7 @@ export function CreateAccount({ navigation }: CreateAccountProps) {
 							name="confirmPassword"
 							render={({ field: { onChange, value } }) => (
 								<Input
+									ref={textInputRefs[5]}
 									placeholder="Confirm Password"
 									icon={
 										<Pressable
