@@ -315,6 +315,7 @@ export function CreateAccount({ navigation }: CreateAccountProps) {
 									error={errors.firstName?.message}
 									value={value}
 									onChangeText={onChange}
+									autoCapitalize="words"
 								/>
 							)}
 						/>
@@ -342,6 +343,7 @@ export function CreateAccount({ navigation }: CreateAccountProps) {
 									error={errors.lastName?.message}
 									value={value}
 									onChangeText={onChange}
+									autoCapitalize="words"
 								/>
 							)}
 						/>
