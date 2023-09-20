@@ -56,21 +56,21 @@ export const FirebaseProvider = ({ children }: any) => {
 			const user = result.user;
 
 			// Add user to Firestore Collection
-			const usersCollection = collection(db, "users");
+			// const usersCollection = collection(db, "users");
 
 			// Check if user already in collection
-			const userQuery = query(usersCollection, where("uid", "==", user.uid));
-			const queryResult = await getDocs(userQuery);
+			// const userQuery = query(usersCollection, where("uid", "==", user.uid));
+			// const queryResult = await getDocs(userQuery);
 
 			// Add new user if not in collection
-			if (queryResult.empty) {
-				await setDoc(doc(db, "users", user.uid), {
-					email,
-					username,
-					firstName,
-					lastName,
-				});
-			}
+			//		if (queryResult.empty) {
+			await setDoc(doc(db, "users", user.uid), {
+				email,
+				username,
+				firstName,
+				lastName,
+			});
+			//		}
 
 			setUser(user);
 
