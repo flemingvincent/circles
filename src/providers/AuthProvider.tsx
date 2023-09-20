@@ -7,6 +7,7 @@ import { doc, setDoc, getDoc } from "firebase/firestore";
 import { createContext, useEffect, useState } from "react";
 
 import { auth, db } from "@/config/firebase";
+import { useProfileStore } from "@/stores/profileStore";
 
 type FirebaseContextProps = {
 	user: User | null;
@@ -30,6 +31,7 @@ export const FirebaseContext = createContext<FirebaseContextProps>({
 
 export const FirebaseProvider = ({ children }: any) => {
 	const [user, setUser] = useState<User | null>(null);
+	const { setProfile, removeProfile } = useProfileStore();
 
 	const createAccount = async (
 		email: string,
@@ -39,36 +41,32 @@ export const FirebaseProvider = ({ children }: any) => {
 		lastName: string,
 	) => {
 		try {
-			// Create Firebase Auth user
 			const result = await createUserWithEmailAndPassword(
 				auth,
 				email,
 				password,
 			);
-			const user = result.user;
 
-			// Check if user document already exists in Firestore based on UID (document ID)
-			const docRef = doc(db, "users", user.uid);
-			const docSnapshot = await getDoc(docRef);
+			setUser(result.user);
 
-			if (docSnapshot.exists()) {
-				console.error("User already exists:", docSnapshot.data());
-				//TODO: Handle this case
-				return null; 
-			} else {
-				// Add new user document not in collection
-				await setDoc(docRef, {
-					email,
-					username,
-					firstName,
-					lastName,
-				});
+			const docRef = doc(db, "users", result.user.uid);
 
-				// Update the 'user' state with the authenticated user
-				setUser(user);
+			await setDoc(docRef, {
+				email,
+				username,
+				firstName,
+				lastName,
+			});
 
-				return user;
-			}
+			setProfile({
+				userId: result.user.uid,
+				email,
+				username,
+				firstName,
+				lastName,
+			});
+
+			return result.user;
 		} catch (error) {
 			throw error;
 		}
@@ -77,7 +75,23 @@ export const FirebaseProvider = ({ children }: any) => {
 	const login = async (email: string, password: string) => {
 		try {
 			const result = await signInWithEmailAndPassword(auth, email, password);
+
 			setUser(result.user);
+
+			const docRef = doc(db, "users", result.user.uid);
+
+			const docSnap = await getDoc(docRef);
+
+			if (docSnap.exists()) {
+				setProfile({
+					userId: result.user.uid,
+					email,
+					username: docSnap.data()?.username,
+					firstName: docSnap.data()?.firstName,
+					lastName: docSnap.data()?.lastName,
+				});
+			}
+
 			return result.user;
 		} catch (error) {
 			throw error;
@@ -88,6 +102,7 @@ export const FirebaseProvider = ({ children }: any) => {
 		try {
 			await auth.signOut();
 			setUser(null);
+			removeProfile();
 		} catch (error) {
 			throw error;
 		}

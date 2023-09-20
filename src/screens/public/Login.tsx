@@ -105,7 +105,6 @@ export function Login({ navigation }: LoginProps) {
 		if (activeIndex.value === 1) {
 			trigger("password").then((isValid) => {
 				if (isValid) {
-					console.log("submit");
 					handleSubmit(onSubmit)();
 				}
 			});
@@ -146,8 +145,6 @@ export function Login({ navigation }: LoginProps) {
 			const { email, password } = data;
 
 			await login(email, password);
-
-			console.log("User signed in:", email);
 		} catch (error) {
 			// TODO: Handle Error, show toast (Vincent, Phillip)
 			console.error("Firebase authorization error: ", error);
