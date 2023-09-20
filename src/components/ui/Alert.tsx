@@ -120,8 +120,8 @@ export const Alert = React.forwardRef(({ ...props }, ref) => {
 					<Animated.View
 						style={[
 							tw`absolute w-[${
-								width * 0.6
-							}px] flex flex-row items-center rounded-full z-20 py-1.5 self-center bg-white`,
+								width * 0.65
+							}px] flex flex-row gap-x-2 items-center rounded-full z-20 px-4 h-12 self-center bg-white`,
 							{
 								shadowColor: "#000",
 								shadowOffset: {
@@ -138,35 +138,31 @@ export const Alert = React.forwardRef(({ ...props }, ref) => {
 						{variant === "default" && (
 							<Image
 								source={require("@/assets/icons/circle-alert.svg")}
-								style={[tw`absolute left-4 w-6 h-6`]}
+								style={[tw`w-6 h-6`]}
 							/>
 						)}
 						{variant === "error" && (
 							<Image
 								source={require("@/assets/icons/circle-alert-red.svg")}
-								style={[tw`absolute left-4 w-6 h-6`]}
+								style={[tw`w-6 h-6`]}
 							/>
 						)}
 						{variant === "success" && (
 							<Image
 								source={require("@/assets/icons/circle-check-green.svg")}
-								style={[tw`absolute left-4 w-6 h-6`]}
+								style={[tw`w-6 h-6`]}
 							/>
 						)}
 						<View style={tw`flex-1`}>
 							{title && (
-								<Text
-									variant="footnote"
-									weight="semibold"
-									style={tw`text-center`}
-								>
+								<Text variant="footnote" weight="semibold">
 									{title}
 								</Text>
 							)}
 							<Text
 								variant="footnote"
-								weight="regular"
-								style={[tw`text-content-secondary text-center`]}
+								weight="medium"
+								style={tw`text-content-secondary`}
 								numberOfLines={1}
 								ellipsizeMode="tail"
 							>
