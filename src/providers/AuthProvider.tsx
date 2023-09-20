@@ -3,13 +3,27 @@ import {
 	createUserWithEmailAndPassword,
 	signInWithEmailAndPassword,
 } from "firebase/auth";
+import {
+	getFirestore,
+	collection,
+	addDoc,
+	query,
+	where,
+	getDocs,
+} from "firebase/firestore";
 import { createContext, useEffect, useState } from "react";
 
 import { auth } from "@/config/firebase";
 
 type FirebaseContextProps = {
 	user: User | null;
-	createAccount: (email: string, password: string) => Promise<User | null>;
+	createAccount: (
+		email: string,
+		password: string,
+		username: string,
+		firstName: string,
+		lastName: string,
+	) => Promise<User | null>;
 	login: (email: string, password: string) => Promise<User | null>;
 	logout: () => Promise<void>;
 };
@@ -24,19 +38,44 @@ export const FirebaseContext = createContext<FirebaseContextProps>({
 export const FirebaseProvider = ({ children }: any) => {
 	const [user, setUser] = useState<User | null>(null);
 
-	const createAccount = async (email: string, password: string) => {
+	const createAccount = async (
+		email: string,
+		password: string,
+		username: string,
+		firstName: string,
+		lastName: string,
+	) => {
 		try {
+			// Create Firebase Auth user
 			const result = await createUserWithEmailAndPassword(
 				auth,
 				email,
 				password,
 			);
+			const user = result.user;
 
-			setUser(result.user);
+			// Add user to Firestore Collection
+			const db = getFirestore();
+			const usersCollection = collection(db, "users");
 
-			// TODO: Use firestore and update users table with firstname, lastname, username, etc.
+			// Check if user already in collection
+			const userQuery = query(usersCollection, where("email", "==", email));
+			const queryResult = await getDocs(userQuery);
 
-			return result.user;
+			// Add new user if not in collection
+			if (queryResult.empty) {
+				await addDoc(usersCollection, {
+					uid: user.uid,
+					email,
+					username,
+					firstName,
+					lastName,
+				});
+			}
+
+			setUser(user);
+
+			return user;
 		} catch (error) {
 			throw error;
 		}

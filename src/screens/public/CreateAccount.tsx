@@ -207,10 +207,10 @@ export function CreateAccount({ navigation }: CreateAccountProps) {
 
 	async function onSubmit(data: z.infer<typeof formSchema>) {
 		try {
-			const { email, password } = data;
+			const { email, password, username, firstName, lastName } = data;
 
 			// TODO: Update createAccount function to include firstName, lastName, username, etc.
-			await createAccount(email, password);
+			await createAccount(email, password, username, firstName, lastName);
 
 			console.log("User signed up:", email);
 		} catch (error) {
