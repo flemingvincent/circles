@@ -98,9 +98,9 @@ export function Login({ navigation }: LoginProps) {
 					scrollRef.current?.scrollTo({
 						x: SCREEN_WIDTH * (activeIndex.value + 1),
 					});
+					openNextTextInput();
 				}
 			});
-			openNextTextInput();
 		}
 
 		if (activeIndex.value === 1) {
