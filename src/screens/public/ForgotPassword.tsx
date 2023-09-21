@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Image } from "expo-image";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useRef, useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import {
 	Dimensions,
@@ -59,11 +59,24 @@ const ScreenIndicator = ({
 
 export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
     const email = route.params.email
-	console.log(route.params)
-
 	const scrollRef = useAnimatedRef<ScrollView>();
+	const alertRef = useRef<any>(null);
 	const translateX = useSharedValue(0);
-	const { createAccount } = useAuth();
+
+	// Firebase code to check if the code is correct
+	async function validateCode(code: string) {
+		return code == "123456"	
+	} 
+
+	// Firebase code to send verification code
+	async function sendCode() {
+		console.log("sending code to " + email)
+	}
+
+	// When this page first loads, send the verification code
+	useEffect(() => {
+		sendCode()
+	}, [])
 
 	// The following two variables and functions are used to automatically focus the inputs.
 	type TextInputRef = React.RefObject<TextInput>;
@@ -84,9 +97,6 @@ export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
 		textInputRefs[currTextInput]?.current?.focus();
 	};
 
-	const [isUsernameAvailable, setIsUsernameAvailable] = useState<
-		boolean | null
-	>(null);
 	const [isPasswordVisible, setIsPasswordVisible] = useState<boolean>(false);
 	const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] =
 		useState<boolean>(false);
@@ -114,7 +124,7 @@ export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
 		}
 
 		if (activeIndex.value === 1) {
-			trigger("lastName").then((isValid) => {
+			trigger("password").then((isValid) => {
 				if (isValid) {
 					scrollRef.current?.scrollTo({
 						x: SCREEN_WIDTH * (activeIndex.value + 1),
@@ -125,12 +135,9 @@ export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
 		}
 
 		if (activeIndex.value === 2) {
-			trigger("username").then((isValid) => {
-				// TODO: Check if username is available in firestore
+			trigger("confirmPassword").then((isValid) => {
 				if (isValid) {
-					scrollRef.current?.scrollTo({
-						x: SCREEN_WIDTH * (activeIndex.value + 1),
-					});
+					handleSubmit(onSubmit)();
 				}
 			});
 		}
@@ -171,7 +178,11 @@ export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
 		.refine((data) => data.password === data.confirmPassword, {
 			message: "Oops! Passwords don't match.",
 			path: ["confirmPassword"],
-		});
+		})
+		.refine((data) => validateCode(data.code), {
+			message: "Oops! Invalid code.",
+			path: ["code"],
+		})
 
 	const {
 		control,
@@ -182,6 +193,23 @@ export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
 	} = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
 	});
+
+	async function onSubmit(data: z.infer<typeof formSchema>) {
+		try {
+			const { password } = data;
+			console.log("new password = " +  password)
+			console.log("email = " + email)
+			// await updatePassword(email, password);
+		} catch (error) {
+			console.log("Firebase authorization error: ", error);
+			alertRef.current?.showAlert({
+				title: "Oops!",
+				message: "Something went wrong.",
+				variant: "error",
+			});
+		}
+	}
+
 
 	return (
 		<SafeAreaView style={tw`flex-1 bg-white`}>
@@ -222,7 +250,7 @@ export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
 					keyboardShouldPersistTaps="always"
 					style={tw`flex-1`}
 				>
-					{/* First Name */}
+					{/* Code Verification */}
 					<View style={tw`w-[${SCREEN_WIDTH}px] px-12`}>
 						<Text variant="title1" weight="semibold" style={tw`mb-4`}>
 							Verification
@@ -248,108 +276,6 @@ export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
 							)}
 						/>
 					</View>
-					{/* Last Name */}
-					<View style={tw`w-[${SCREEN_WIDTH}px] px-12`}>
-						<Text variant="title1" weight="semibold" style={tw`mb-4`}>
-							Last Name
-						</Text>
-						<Text
-							variant="callout"
-							weight="semibold"
-							style={tw`text-content-secondary mb-6`}
-						>
-							Enter your last name.
-						</Text>
-						<Controller
-							control={control}
-							name="lastName"
-							render={({ field: { onChange, value } }) => (
-								<Input
-									ref={textInputRefs[1]}
-									placeholder="Last Name"
-									description="Your name will be displayed on your profile."
-									error={errors.lastName?.message}
-									value={value}
-									onChangeText={onChange}
-								/>
-							)}
-						/>
-					</View>
-					{/* Username */}
-					<View style={tw`w-[${SCREEN_WIDTH}px] px-12`}>
-						<Text variant="title1" weight="semibold" style={tw`mb-4`}>
-							Username
-						</Text>
-						<Text
-							variant="callout"
-							weight="semibold"
-							style={tw`text-content-secondary mb-6`}
-						>
-							Choose a username for your account.
-						</Text>
-						<Controller
-							control={control}
-							name="username"
-							render={({ field: { onChange, value } }) => (
-								<Input
-									ref={textInputRefs[2]}
-									placeholder="Username"
-									description="Your username will be displayed on your profile."
-									indicator={
-										<View style={tw`flex-row items-center gap-x-2 mt-6`}>
-											<Image
-												source={
-													isUsernameAvailable
-														? require("@/assets/icons/circle-check-green.svg")
-														: require("@/assets/icons/circle-check.svg")
-												}
-												style={tw`w-6 h-6`}
-											/>
-											<Text
-												variant="subheadline"
-												weight="semibold"
-												style={tw`text-content-tertiary`}
-											>
-												Username Available
-											</Text>
-										</View>
-									}
-									error={errors.username?.message}
-									value={value}
-									onChangeText={onChange}
-								/>
-							)}
-						/>
-					</View>
-					{/* Email */}
-					<View style={tw`w-[${SCREEN_WIDTH}px] px-12`}>
-						<Text variant="title1" weight="semibold" style={tw`mb-4`}>
-							Email
-						</Text>
-						<Text
-							variant="callout"
-							weight="semibold"
-							style={tw`text-content-secondary mb-6`}
-						>
-							Enter your email address.
-						</Text>
-						<Controller
-							control={control}
-							name="email"
-							render={({ field: { onChange, value } }) => (
-								<Input
-									ref={textInputRefs[3]}
-									placeholder="Email"
-									description="Your email address will be used to sign into your account."
-									error={errors.email?.message}
-									autoComplete="email"
-									keyboardType="email-address"
-									value={value}
-									onChangeText={onChange}
-								/>
-							)}
-						/>
-					</View>
 					{/* Password */}
 					<View style={tw`w-[${SCREEN_WIDTH}px] px-12`}>
 						<Text variant="title1" weight="semibold" style={tw`mb-4`}>
@@ -367,7 +293,7 @@ export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
 							name="password"
 							render={({ field: { onChange, value } }) => (
 								<Input
-									ref={textInputRefs[4]}
+									ref={textInputRefs[1]}
 									placeholder="Password"
 									icon={
 										<Pressable
@@ -386,7 +312,7 @@ export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
 										</Pressable>
 									}
 									secureTextEntry={!isPasswordVisible}
-									description="Strong passwords are often 10 characters or more and include a special character and a number."
+									description="Strong passwords consist of at least 10 characters and should include a combination of uppercase and lowercase letters, special characters, and numbers."
 									error={errors.password?.message}
 									value={value}
 									onChangeText={onChange}
@@ -443,7 +369,7 @@ export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
 							name="confirmPassword"
 							render={({ field: { onChange, value } }) => (
 								<Input
-									ref={textInputRefs[5]}
+									ref={textInputRefs[2]}
 									placeholder="Confirm Password"
 									icon={
 										<Pressable
@@ -499,6 +425,14 @@ export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
 					</View>
 				</Animated.ScrollView>
 				<View style={tw`px-12`}>
+					<Text
+						variant="callout"
+						weight="semibold"
+						style={tw`text-content-secondary mb-6 text-center`}
+						onPress={sendCode}
+					>
+						Forgot Password?
+					</Text>
 					<Button
 						variant="primary"
 						label="Continue"
