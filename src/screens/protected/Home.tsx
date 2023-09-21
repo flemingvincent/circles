@@ -6,9 +6,12 @@ import MapView from "react-native-maps";
 
 import { CustomBackdrop } from "@/components/sheet/CustomBackdrop";
 import { Button, Text } from "@/components/ui";
+import { useAuth } from "@/hooks/useAuth";
 import tw from "@/lib/tailwind";
 
 export default function Home() {
+	const { logout } = useAuth();
+
 	const permissionsModalRef = useRef<BottomSheetModal>(null);
 
 	const permissionSnapPoints = useMemo(() => ["60%"], []);
@@ -50,7 +53,13 @@ export default function Home() {
 						Don't worry, your location is only visible to groups you're part of,
 						and you can turn it off whenever you want.
 					</Text>
-					<Button label="Enable" />
+					{/* Logout just for testing */}
+					<Button
+						label="Logout"
+						onPress={() => {
+							logout();
+						}}
+					/>
 				</View>
 			</BottomSheetModal>
 		</View>
