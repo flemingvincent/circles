@@ -43,7 +43,7 @@ const ScreenIndicator = ({
 		return {
 			width: withTiming(activeIndex.value === index ? 32 : 16),
 			backgroundColor: withTiming(
-				activeIndex.value === index ? "#222222" : "#D9D9D9",
+				activeIndex.value === index ? "#4DAFFF" : "#D9D9D9",
 			),
 		};
 	});
@@ -71,15 +71,19 @@ export function Login({ navigation }: LoginProps) {
 
 	const openNextTextInput = () => {
 		currTextInput += 1;
+		setForgotPasswordVisible(true);
 		textInputRefs[currTextInput]?.current?.focus();
 	};
 
 	const openPrevTextInput = () => {
 		currTextInput -= 1;
+		setForgotPasswordVisible(false);
 		textInputRefs[currTextInput]?.current?.focus();
 	};
 
 	const [isPasswordVisible, setIsPasswordVisible] = useState<boolean>(false);
+	const [forgotPasswordVisible, setForgotPasswordVisible] =
+		useState<boolean>(false);
 
 	const scrollHandler = useAnimatedScrollHandler({
 		onScroll: (event) => {
@@ -137,6 +141,7 @@ export function Login({ navigation }: LoginProps) {
 		handleSubmit,
 		trigger,
 		formState: { errors, isSubmitting },
+		getValues,
 	} = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
 	});
@@ -155,6 +160,18 @@ export function Login({ navigation }: LoginProps) {
 			});
 		}
 	}
+
+	const rForgotPasswordStyle = useAnimatedStyle(() => {
+		return {
+			opacity: forgotPasswordVisible
+				? withTiming(1, {
+						duration: 350,
+				  })
+				: withTiming(0, {
+						duration: 350,
+				  }),
+		};
+	});
 
 	return (
 		<SafeAreaView style={tw`flex-1 bg-white`}>
@@ -273,8 +290,25 @@ export function Login({ navigation }: LoginProps) {
 					</View>
 				</Animated.ScrollView>
 				<View style={tw`px-12`}>
+					{forgotPasswordVisible && (
+						<Text
+							variant="callout"
+							weight="semibold"
+							style={[
+								tw`text-content-secondary mb-4 text-center`,
+								rForgotPasswordStyle,
+							]}
+							onPress={() => {
+								navigation.navigate("ForgotPassword", {
+									email: getValues("email"),
+								});
+							}}
+						>
+							Forgot Password?
+						</Text>
+					)}
 					<Button
-						variant="secondary"
+						variant="primary"
 						label="Continue"
 						style={tw`mb-4`}
 						onPress={handleScrollForward}
