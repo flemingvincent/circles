@@ -157,6 +157,26 @@ export function Login({ navigation }: LoginProps) {
 		}
 	}
 
+	const rForgotPasswordStyle = useAnimatedStyle(() => {
+		return {
+			opacity:
+				activeIndex.value === 1
+					? withTiming(1, {
+							duration: 350,
+					  })
+					: withTiming(0, {
+							duration: 350,
+					  }),
+			display: activeIndex.value === 1 ? "flex" : "none",
+		};
+	});
+
+	const handleForgotPassword = () => {
+		navigation.replace("ForgotPassword", {
+			email: getValues("email"),
+		});
+	};
+
 	return (
 		<SafeAreaView style={tw`flex-1 bg-white`}>
 			<Alert ref={alertRef} />
@@ -277,12 +297,11 @@ export function Login({ navigation }: LoginProps) {
 					<Text
 						variant="body"
 						weight="semibold"
-						style={tw`text-content-secondary mb-4 text-center`}
-						onPress={() => {
-							navigation.navigate("ForgotPassword", {
-								email: getValues("email"),
-							});
-						}}
+						style={[
+							tw`text-content-secondary mb-4 text-center`,
+							rForgotPasswordStyle,
+						]}
+						onPress={handleForgotPassword}
 					>
 						Forgot Password?
 					</Text>
