@@ -1,6 +1,9 @@
 import { Text as RNText, TextProps as RNTextProps } from "react-native";
+import Animated from "react-native-reanimated";
 
 import tw from "@/lib/tailwind";
+
+const AnimatedText = Animated.createAnimatedComponent(RNText);
 
 interface TextProps extends RNTextProps {
 	children: React.ReactNode;
@@ -26,7 +29,7 @@ export function Text({
 	...props
 }: TextProps) {
 	return (
-		<RNText
+		<AnimatedText
 			style={[
 				tw`text-content-primary`,
 				variant === "title1" && tw`title1`,
@@ -48,6 +51,6 @@ export function Text({
 			{...props}
 		>
 			{children}
-		</RNText>
+		</AnimatedText>
 	);
 }

@@ -166,7 +166,7 @@ export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
 					required_error: "Oops! A code is required.",
 				})
 				.regex(/^[0-9]+$/, "Oops! Only numbers allowed.")
-				.length(6, "Oops! Enter exactly 6 numbers."),
+				.min(6, "Oops! 6 digits are required."),
 			password: z
 				.string({
 					required_error: "Oops! A password is required.",
@@ -214,6 +214,18 @@ export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
 			});
 		}
 	}
+
+	const rResendCodeStyle = useAnimatedStyle(() => {
+		return {
+			opacity: resendCodeVisible
+				? withTiming(1, {
+						duration: 350,
+				  })
+				: withTiming(0, {
+						duration: 350,
+				  }),
+		};
+	});
 
 	return (
 		<SafeAreaView style={tw`flex-1 bg-white`}>
@@ -264,7 +276,14 @@ export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
 							weight="semibold"
 							style={tw`text-content-secondary mb-6`}
 						>
-							Enter the six digit code sent to {email}
+							Enter the six digit code sent to{" "}
+							<Text
+								variant="callout"
+								weight="semibold"
+								style={tw`text-content-primary`}
+							>
+								{email}
+							</Text>
 						</Text>
 						<Controller
 							control={control}
@@ -276,6 +295,8 @@ export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
 									error={errors.code?.message}
 									value={value}
 									onChangeText={onChange}
+									maxLength={6}
+									keyboardType="number-pad"
 								/>
 							)}
 						/>
@@ -283,7 +304,7 @@ export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
 					{/* Password */}
 					<View style={tw`w-[${SCREEN_WIDTH}px] px-12`}>
 						<Text variant="title1" weight="semibold" style={tw`mb-4`}>
-							Choose Password
+							New Password
 						</Text>
 						<Text
 							variant="callout"
@@ -366,7 +387,7 @@ export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
 							weight="semibold"
 							style={tw`text-content-secondary mb-6`}
 						>
-							Enter your password again to create your account.
+							Enter your new password again to successfuly reset it.
 						</Text>
 						<Controller
 							control={control}
@@ -433,7 +454,10 @@ export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
 						<Text
 							variant="callout"
 							weight="semibold"
-							style={tw`text-content-secondary mb-6 text-center`}
+							style={[
+								tw`text-content-secondary mb-4 text-center`,
+								rResendCodeStyle,
+							]}
 							onPress={sendCode}
 						>
 							Didn't receive a code?
