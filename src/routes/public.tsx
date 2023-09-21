@@ -1,12 +1,17 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
-import { Welcome, Login, CreateAccount, ForgotPassword } from "@/screens/public";
+import {
+	Welcome,
+	Login,
+	CreateAccount,
+	ForgotPassword,
+} from "@/screens/public";
 
 export type PublicStackParamList = {
 	Welcome: undefined;
 	Login: undefined;
 	CreateAccount: undefined;
-	ForgotPassword: {email: string};
+	ForgotPassword: { email: string };
 };
 
 const Stack = createNativeStackNavigator<PublicStackParamList>();

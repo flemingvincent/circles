@@ -24,7 +24,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import * as z from "zod";
 
 import { Button, Input, Text } from "@/components/ui";
-import { useAuth } from "@/hooks/useAuth";
 import tw from "@/lib/tailwind";
 import { PublicStackParamList } from "@/routes/public";
 type ForgotPasswordProps = NativeStackScreenProps<
@@ -58,25 +57,25 @@ const ScreenIndicator = ({
 };
 
 export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
-    const email = route.params.email
+	const email = route.params.email;
 	const scrollRef = useAnimatedRef<ScrollView>();
 	const alertRef = useRef<any>(null);
 	const translateX = useSharedValue(0);
 
 	// Firebase code to check if the code is correct
 	async function validateCode(code: string) {
-		return code == "123456"	
-	} 
+		return code === "123456";
+	}
 
 	// Firebase code to send verification code
 	async function sendCode() {
-		console.log("sending code to " + email)
+		console.log("sending code to " + email);
 	}
 
 	// When this page first loads, send the verification code
 	useEffect(() => {
-		sendCode()
-	}, [])
+		sendCode();
+	}, []);
 
 	// The following two variables and functions are used to automatically focus the inputs.
 	type TextInputRef = React.RefObject<TextInput>;
@@ -182,7 +181,7 @@ export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
 		.refine((data) => validateCode(data.code), {
 			message: "Oops! Invalid code.",
 			path: ["code"],
-		})
+		});
 
 	const {
 		control,
@@ -197,8 +196,8 @@ export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
 	async function onSubmit(data: z.infer<typeof formSchema>) {
 		try {
 			const { password } = data;
-			console.log("new password = " +  password)
-			console.log("email = " + email)
+			console.log("new password = " + password);
+			console.log("email = " + email);
 			// await updatePassword(email, password);
 		} catch (error) {
 			console.log("Firebase authorization error: ", error);
@@ -209,7 +208,6 @@ export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
 			});
 		}
 	}
-
 
 	return (
 		<SafeAreaView style={tw`flex-1 bg-white`}>
