@@ -23,7 +23,7 @@ import Animated, {
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as z from "zod";
 
-import { Button, Input, Text } from "@/components/ui";
+import { Button, Input, Text, Alert } from "@/components/ui";
 import tw from "@/lib/tailwind";
 import { PublicStackParamList } from "@/routes/public";
 type ForgotPasswordProps = NativeStackScreenProps<
@@ -61,22 +61,6 @@ export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
 	const scrollRef = useAnimatedRef<ScrollView>();
 	const alertRef = useRef<any>(null);
 	const translateX = useSharedValue(0);
-	const [resendCodeVisible, setResendCodeVisible] = useState(true);
-
-	// Firebase code to check if the code is correct
-	async function validateCode(code: string) {
-		return code === "123456";
-	}
-
-	// Firebase code to send verification code
-	async function sendCode() {
-		console.log("sending code to " + email);
-	}
-
-	// When this page first loads, send the verification code
-	useEffect(() => {
-		sendCode();
-	}, []);
 
 	// The following two variables and functions are used to automatically focus the inputs.
 	type TextInputRef = React.RefObject<TextInput>;
@@ -119,7 +103,6 @@ export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
 						x: SCREEN_WIDTH * (activeIndex.value + 1),
 					});
 					openNextTextInput();
-					setResendCodeVisible(false);
 				}
 			});
 		}
@@ -153,10 +136,6 @@ export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
 		openPrevTextInput();
 
 		scrollRef.current?.scrollTo({ x: SCREEN_WIDTH * (activeIndex.value - 1) });
-
-		if (activeIndex.value === 1) {
-			setResendCodeVisible(true);
-		}
 	}, []);
 
 	const formSchema = z
@@ -183,10 +162,6 @@ export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
 		.refine((data) => data.password === data.confirmPassword, {
 			message: "Oops! Passwords don't match.",
 			path: ["confirmPassword"],
-		})
-		.refine((data) => validateCode(data.code), {
-			message: "Oops! Invalid code.",
-			path: ["code"],
 		});
 
 	const {
@@ -201,10 +176,10 @@ export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
 
 	async function onSubmit(data: z.infer<typeof formSchema>) {
 		try {
-			const { password } = data;
-			console.log("new password = " + password);
-			console.log("email = " + email);
-			// await updatePassword(email, password);
+			const { code, password } = data;
+			console.log("code: ", code);
+			console.log("password: ", password);
+			console.log("email: ", email);
 		} catch (error) {
 			console.log("Firebase authorization error: ", error);
 			alertRef.current?.showAlert({
@@ -217,18 +192,31 @@ export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
 
 	const rResendCodeStyle = useAnimatedStyle(() => {
 		return {
-			opacity: resendCodeVisible
-				? withTiming(1, {
-						duration: 350,
-				  })
-				: withTiming(0, {
-						duration: 350,
-				  }),
+			opacity:
+				activeIndex.value === 0
+					? withTiming(1, {
+							duration: 350,
+					  })
+					: withTiming(0, {
+							duration: 350,
+					  }),
+			display: activeIndex.value === 0 ? "flex" : "none",
 		};
 	});
 
+	useEffect(() => {
+		setTimeout(() => {
+			alertRef.current?.showAlert({
+				title: "Success!",
+				message: "Verification code sent.",
+				variant: "success",
+			});
+		}, 500);
+	}, []);
+
 	return (
 		<SafeAreaView style={tw`flex-1 bg-white`}>
+			<Alert ref={alertRef} />
 			<KeyboardAvoidingView
 				style={tw`flex-1`}
 				behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -450,19 +438,17 @@ export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
 					</View>
 				</Animated.ScrollView>
 				<View style={tw`px-12`}>
-					{resendCodeVisible && (
-						<Text
-							variant="callout"
-							weight="semibold"
-							style={[
-								tw`text-content-secondary mb-4 text-center`,
-								rResendCodeStyle,
-							]}
-							onPress={sendCode}
-						>
-							Didn't receive a code?
-						</Text>
-					)}
+					<Text
+						variant="body"
+						weight="semibold"
+						style={[
+							tw`text-content-secondary mb-4 text-center`,
+							rResendCodeStyle,
+						]}
+					>
+						Didn't receive a code?
+					</Text>
+
 					<Button
 						variant="primary"
 						label="Continue"
