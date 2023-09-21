@@ -61,6 +61,7 @@ export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
 	const scrollRef = useAnimatedRef<ScrollView>();
 	const alertRef = useRef<any>(null);
 	const translateX = useSharedValue(0);
+	const [resendCodeVisible, setResendCodeVisible] = useState(true)
 
 	// Firebase code to check if the code is correct
 	async function validateCode(code: string) {
@@ -118,6 +119,7 @@ export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
 						x: SCREEN_WIDTH * (activeIndex.value + 1),
 					});
 					openNextTextInput();
+					setResendCodeVisible(false)
 				}
 			});
 		}
@@ -151,6 +153,10 @@ export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
 		openPrevTextInput();
 
 		scrollRef.current?.scrollTo({ x: SCREEN_WIDTH * (activeIndex.value - 1) });
+
+		if (activeIndex.value === 1) {
+			setResendCodeVisible(true)
+		}
 	}, []);
 
 	const formSchema = z
@@ -423,14 +429,16 @@ export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
 					</View>
 				</Animated.ScrollView>
 				<View style={tw`px-12`}>
-					<Text
-						variant="callout"
-						weight="semibold"
-						style={tw`text-content-secondary mb-6 text-center`}
-						onPress={sendCode}
-					>
-						Forgot Password?
-					</Text>
+					{resendCodeVisible && (
+						<Text
+							variant="callout"
+							weight="semibold"
+							style={tw`text-content-secondary mb-6 text-center`}
+							onPress={sendCode}
+						>
+							Didn't receive a code?
+						</Text>
+					)}
 					<Button
 						variant="primary"
 						label="Continue"
