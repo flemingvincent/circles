@@ -61,7 +61,7 @@ export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
 	const scrollRef = useAnimatedRef<ScrollView>();
 	const alertRef = useRef<any>(null);
 	const translateX = useSharedValue(0);
-	const [resendCodeVisible, setResendCodeVisible] = useState(true)
+	const [resendCodeVisible, setResendCodeVisible] = useState(true);
 
 	// Firebase code to check if the code is correct
 	async function validateCode(code: string) {
@@ -119,7 +119,7 @@ export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
 						x: SCREEN_WIDTH * (activeIndex.value + 1),
 					});
 					openNextTextInput();
-					setResendCodeVisible(false)
+					setResendCodeVisible(false);
 				}
 			});
 		}
@@ -155,7 +155,7 @@ export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
 		scrollRef.current?.scrollTo({ x: SCREEN_WIDTH * (activeIndex.value - 1) });
 
 		if (activeIndex.value === 1) {
-			setResendCodeVisible(true)
+			setResendCodeVisible(true);
 		}
 	}, []);
 
