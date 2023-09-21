@@ -71,15 +71,18 @@ export function Login({ navigation }: LoginProps) {
 
 	const openNextTextInput = () => {
 		currTextInput += 1;
+		setForgotPasswordVisible(true)
 		textInputRefs[currTextInput]?.current?.focus();
 	};
 
 	const openPrevTextInput = () => {
 		currTextInput -= 1;
+		setForgotPasswordVisible(false)
 		textInputRefs[currTextInput]?.current?.focus();
 	};
 
 	const [isPasswordVisible, setIsPasswordVisible] = useState<boolean>(false);
+	const [forgotPasswordVisible, setForgotPasswordVisible] = useState<boolean>(false);
 
 	const scrollHandler = useAnimatedScrollHandler({
 		onScroll: (event) => {
@@ -137,6 +140,7 @@ export function Login({ navigation }: LoginProps) {
 		handleSubmit,
 		trigger,
 		formState: { errors, isSubmitting },
+		getValues,
 	} = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
 	});
@@ -273,6 +277,16 @@ export function Login({ navigation }: LoginProps) {
 					</View>
 				</Animated.ScrollView>
 				<View style={tw`px-12`}>
+					{forgotPasswordVisible &&
+						(<Text
+							variant="callout"
+							weight="semibold"
+							style={tw`text-content-secondary mb-6 text-center`}
+							onPress={() => {
+								navigation.navigate("ForgotPassword", { email: getValues('email') });
+							}}
+						>Forgot Password?</Text>)
+					}
 					<Button
 						variant="secondary"
 						label="Continue"
