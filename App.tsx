@@ -1,3 +1,4 @@
+import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
@@ -39,10 +40,12 @@ export default function App() {
 	return (
 		<FirebaseProvider>
 			<GestureHandlerRootView style={tw`flex-1`}>
-				<SafeAreaProvider>
-					<StatusBar style="dark" />
-					<AppRoutes />
-				</SafeAreaProvider>
+				<BottomSheetModalProvider>
+					<SafeAreaProvider>
+						<StatusBar style="dark" />
+						<AppRoutes />
+					</SafeAreaProvider>
+				</BottomSheetModalProvider>
 			</GestureHandlerRootView>
 		</FirebaseProvider>
 	);
