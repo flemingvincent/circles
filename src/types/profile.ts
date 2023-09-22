@@ -1,7 +1,9 @@
 export interface IProfile {
-	userId: string;
+	id: string;
 	email: string;
-	firstName: string;
-	lastName: string;
-	username: string | null;
+	username: string;
+	first_name: string;
+	last_name: string;
+	avatar_url?: string;
+	location?: string;
 }

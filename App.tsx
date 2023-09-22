@@ -8,7 +8,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useDeviceContext } from "twrnc";
 
 import tw from "@/lib/tailwind";
-import { FirebaseProvider } from "@/providers/AuthProvider";
+import { AuthProvider } from "@/providers/AuthProvider";
 import { AppRoutes } from "@/routes";
 
 SplashScreen.preventAutoHideAsync();
@@ -38,7 +38,7 @@ export default function App() {
 	if (!loaded) return null;
 
 	return (
-		<FirebaseProvider>
+		<AuthProvider>
 			<GestureHandlerRootView style={tw`flex-1`}>
 				<BottomSheetModalProvider>
 					<SafeAreaProvider>
@@ -47,6 +47,6 @@ export default function App() {
 					</SafeAreaProvider>
 				</BottomSheetModalProvider>
 			</GestureHandlerRootView>
-		</FirebaseProvider>
+		</AuthProvider>
 	);
 }

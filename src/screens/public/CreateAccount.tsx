@@ -248,10 +248,12 @@ export function CreateAccount({ navigation }: CreateAccountProps) {
 
 			await createAccount(email, password, username, firstName, lastName);
 		} catch (error) {
-			console.log("Firebase authorization error: ", error);
+			// @ts-ignore
+			console.log("Supabase SignUp Error: ", error);
 			alertRef.current?.showAlert({
 				title: "Oops!",
-				message: "Something went wrong.",
+				// @ts-ignore
+				message: error.message + ".",
 				variant: "error",
 			});
 		}

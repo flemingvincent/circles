@@ -1,36 +1,44 @@
-import {
-	User,
-	createUserWithEmailAndPassword,
-	signInWithEmailAndPassword,
-} from "firebase/auth";
-import { doc, setDoc, getDoc } from "firebase/firestore";
+import { Session, User } from "@supabase/supabase-js";
 import { createContext, useEffect, useState } from "react";
 
-import { auth, db } from "@/config/firebase";
+import { supabase } from "@/config/supabase";
 import { useProfileStore } from "@/stores/profileStore";
 
-type FirebaseContextProps = {
+type AuthContextProps = {
 	user: User | null;
+	session: Session | null;
+	intialized?: boolean;
 	createAccount: (
 		email: string,
 		password: string,
 		username: string,
 		firstName: string,
 		lastName: string,
-	) => Promise<User | null>;
-	login: (email: string, password: string) => Promise<User | null>;
+	) => Promise<void>;
+	login: (email: string, password: string) => Promise<void>;
+	forgotPassword: (
+		email: string,
+		token: string,
+		password: string,
+	) => Promise<void>;
 	logout: () => Promise<void>;
 };
 
-export const FirebaseContext = createContext<FirebaseContextProps>({
+export const AuthContext = createContext<AuthContextProps>({
 	user: null,
-	createAccount: async (email: string, password: string) => null,
-	login: async (email: string, password: string) => null,
+	session: null,
+	intialized: false,
+	createAccount: async () => {},
+	login: async () => {},
+	forgotPassword: async () => {},
 	logout: async () => {},
 });
 
-export const FirebaseProvider = ({ children }: any) => {
+export const AuthProvider = ({ children }: any) => {
 	const [user, setUser] = useState<User | null>(null);
+	const [session, setSession] = useState<Session | null>(null);
+	const [intialized, setInitialized] = useState<boolean>(false);
+
 	const { setProfile, removeProfile } = useProfileStore();
 
 	const createAccount = async (
@@ -41,32 +49,33 @@ export const FirebaseProvider = ({ children }: any) => {
 		lastName: string,
 	) => {
 		try {
-			const result = await createUserWithEmailAndPassword(
-				auth,
+			const { data, error: signUpError } = await supabase.auth.signUp({
 				email,
 				password,
-			);
-
-			setUser(result.user);
-
-			const docRef = doc(db, "users", result.user.uid);
-
-			await setDoc(docRef, {
-				email,
-				username,
-				firstName,
-				lastName,
 			});
 
-			setProfile({
-				userId: result.user.uid,
-				email,
-				username,
-				firstName,
-				lastName,
-			});
+			const { error: dbError } = await supabase
+				.from("profiles")
+				.update({
+					email,
+					username,
+					first_name: firstName,
+					last_name: lastName,
+					updated_at: new Date(),
+				})
+				.eq("id", data.user?.id);
 
-			return result.user;
+			if (signUpError || dbError) {
+				throw signUpError || dbError;
+			} else {
+				setProfile({
+					id: data.user!.id,
+					email,
+					username,
+					first_name: firstName,
+					last_name: lastName,
+				});
+			}
 		} catch (error) {
 			throw error;
 		}
@@ -74,25 +83,73 @@ export const FirebaseProvider = ({ children }: any) => {
 
 	const login = async (email: string, password: string) => {
 		try {
-			const result = await signInWithEmailAndPassword(auth, email, password);
-
-			setUser(result.user);
-
-			const docRef = doc(db, "users", result.user.uid);
-
-			const docSnap = await getDoc(docRef);
-
-			if (docSnap.exists()) {
-				setProfile({
-					userId: result.user.uid,
+			const { data: signInData, error: signInError } =
+				await supabase.auth.signInWithPassword({
 					email,
-					username: docSnap.data()?.username,
-					firstName: docSnap.data()?.firstName,
-					lastName: docSnap.data()?.lastName,
+					password,
+				});
+
+			const { data: dbData, error: dbError } = await supabase
+				.from("profiles")
+				.select("*")
+				.eq("id", signInData.user?.id);
+
+			if (signInError || dbError) {
+				throw signInError || dbError;
+			} else {
+				setProfile({
+					id: signInData.user!.id,
+					email: dbData![0].email,
+					username: dbData![0].username,
+					first_name: dbData![0].first_name,
+					last_name: dbData![0].last_name,
 				});
 			}
+		} catch (error) {
+			throw error;
+		}
+	};
 
-			return result.user;
+	const forgotPassword = async (
+		email: string,
+		token: string,
+		password: string,
+	) => {
+		try {
+			const { data: verifyData, error: verifyError } =
+				await supabase.auth.verifyOtp({
+					email,
+					token,
+					type: "recovery",
+				});
+
+			if (verifyError) {
+				throw verifyError;
+			} else {
+				const { error: updateError } = await supabase.auth.updateUser({
+					password,
+				});
+				if (updateError) {
+					throw updateError;
+				} else {
+					const { data: dbData, error: dbError } = await supabase
+						.from("profiles")
+						.select("*")
+						.eq("id", verifyData.user?.id);
+
+					if (dbError) {
+						throw dbError;
+					} else {
+						setProfile({
+							id: verifyData.user!.id,
+							email: dbData![0].email,
+							username: dbData![0].username,
+							first_name: dbData![0].first_name,
+							last_name: dbData![0].last_name,
+						});
+					}
+				}
+			}
 		} catch (error) {
 			throw error;
 		}
@@ -100,8 +157,7 @@ export const FirebaseProvider = ({ children }: any) => {
 
 	const logout = async () => {
 		try {
-			await auth.signOut();
-			setUser(null);
+			await supabase.auth.signOut();
 			removeProfile();
 		} catch (error) {
 			throw error;
@@ -109,23 +165,29 @@ export const FirebaseProvider = ({ children }: any) => {
 	};
 
 	useEffect(() => {
-		const unsubscribe = auth.onAuthStateChanged((user) => {
-			setUser(user);
+		const { data } = supabase.auth.onAuthStateChange(async (event, session) => {
+			setSession(session);
+			setUser(session ? session.user : null);
+			setInitialized(true);
 		});
-
-		return () => unsubscribe();
-	}, [user]);
+		return () => {
+			data.subscription.unsubscribe();
+		};
+	}, []);
 
 	return (
-		<FirebaseContext.Provider
+		<AuthContext.Provider
 			value={{
 				user,
+				session,
+				intialized,
 				createAccount,
 				login,
+				forgotPassword,
 				logout,
 			}}
 		>
 			{children}
-		</FirebaseContext.Provider>
+		</AuthContext.Provider>
 	);
 };

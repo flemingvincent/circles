@@ -24,6 +24,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import * as z from "zod";
 
 import { Button, Input, Text, Alert } from "@/components/ui";
+import { useAuth } from "@/hooks/useAuth";
 import tw from "@/lib/tailwind";
 import { PublicStackParamList } from "@/routes/public";
 type ForgotPasswordProps = NativeStackScreenProps<
@@ -61,6 +62,7 @@ export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
 	const scrollRef = useAnimatedRef<ScrollView>();
 	const alertRef = useRef<any>(null);
 	const translateX = useSharedValue(0);
+	const { forgotPassword } = useAuth();
 
 	// The following two variables and functions are used to automatically focus the inputs.
 	type TextInputRef = React.RefObject<TextInput>;
@@ -177,14 +179,14 @@ export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
 	async function onSubmit(data: z.infer<typeof formSchema>) {
 		try {
 			const { code, password } = data;
-			console.log("code: ", code);
-			console.log("password: ", password);
-			console.log("email: ", email);
+
+			await forgotPassword(email, code, password);
 		} catch (error) {
-			console.log("Firebase authorization error: ", error);
+			console.log("Supabase Reset Password Error: ", error);
 			alertRef.current?.showAlert({
 				title: "Oops!",
-				message: "Something went wrong.",
+				// @ts-ignore
+				message: error.message + ".",
 				variant: "error",
 			});
 		}

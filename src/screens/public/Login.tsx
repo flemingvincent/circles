@@ -24,6 +24,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import * as z from "zod";
 
 import { Button, Input, Text, Alert } from "@/components/ui";
+import { supabase } from "@/config/supabase";
 import { useAuth } from "@/hooks/useAuth";
 import tw from "@/lib/tailwind";
 import { PublicStackParamList } from "@/routes/public";
@@ -148,10 +149,11 @@ export function Login({ navigation }: LoginProps) {
 
 			await login(email, password);
 		} catch (error) {
-			console.log("Firebase authorization error: ", error);
+			console.log("Supabase SignIn Error: ", error);
 			alertRef.current?.showAlert({
 				title: "Oops!",
-				message: "Something went wrong.",
+				// @ts-ignore
+				message: error.message + ".",
 				variant: "error",
 			});
 		}
@@ -177,10 +179,27 @@ export function Login({ navigation }: LoginProps) {
 		};
 	});
 
-	const handleForgotPassword = () => {
-		navigation.replace("ForgotPassword", {
-			email: getValues("email"),
-		});
+	const handleForgotPassword = async () => {
+		try {
+			const { error: resetPasswordError } =
+				await supabase.auth.resetPasswordForEmail(getValues("email"));
+
+			if (resetPasswordError) {
+				throw resetPasswordError;
+			} else {
+				navigation.replace("ForgotPassword", {
+					email: getValues("email"),
+				});
+			}
+		} catch (error) {
+			console.log("Supabase forgot password error: ", error);
+			alertRef.current?.showAlert({
+				title: "Oops!",
+				// @ts-ignore
+				message: error.message + ".",
+				variant: "error",
+			});
+		}
 	};
 
 	return (
