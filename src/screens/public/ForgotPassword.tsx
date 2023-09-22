@@ -200,7 +200,13 @@ export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
 					: withTiming(0, {
 							duration: 350,
 					  }),
-			display: activeIndex.value === 0 ? "flex" : "none",
+			transform: [
+				{
+					translateY: withTiming(activeIndex.value === 0 ? 0 : 36, {
+						duration: 350,
+					}),
+				},
+			],
 		};
 	});
 
@@ -445,6 +451,9 @@ export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
 							tw`text-content-secondary mb-4 text-center`,
 							rResendCodeStyle,
 						]}
+						onPress={() => {
+							console.log("Resend code");
+						}}
 					>
 						Didn't receive a code?
 					</Text>
