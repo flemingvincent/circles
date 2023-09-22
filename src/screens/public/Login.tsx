@@ -167,7 +167,13 @@ export function Login({ navigation }: LoginProps) {
 					: withTiming(0, {
 							duration: 350,
 					  }),
-			display: activeIndex.value === 1 ? "flex" : "none",
+			transform: [
+				{
+					translateY: withTiming(activeIndex.value === 1 ? 0 : 36, {
+						duration: 350,
+					}),
+				},
+			],
 		};
 	});
 
