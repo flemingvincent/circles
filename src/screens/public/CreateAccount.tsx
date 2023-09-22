@@ -88,6 +88,9 @@ export function CreateAccount({ navigation }: CreateAccountProps) {
 	const [isUsernameAvailable, setIsUsernameAvailable] = useState<
 		boolean | null
 	>(null);
+	const [isEmailAvailable, setIsEmailAvailable] = useState<boolean | null>(
+		null,
+	);
 	const [isPasswordVisible, setIsPasswordVisible] = useState<boolean>(false);
 	const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] =
 		useState<boolean>(false);
@@ -126,8 +129,8 @@ export function CreateAccount({ navigation }: CreateAccountProps) {
 		}
 
 		if (activeIndex.value === 2) {
+			// TODO: Check if username is available
 			trigger("username").then((isValid) => {
-				// TODO: Check if username is available in firestore
 				if (isValid) {
 					scrollRef.current?.scrollTo({
 						x: SCREEN_WIDTH * (activeIndex.value + 1),
@@ -138,6 +141,7 @@ export function CreateAccount({ navigation }: CreateAccountProps) {
 		}
 
 		if (activeIndex.value === 3) {
+			// TODO: Check if email is available
 			trigger("email").then((isValid) => {
 				if (isValid) {
 					scrollRef.current?.scrollTo({
@@ -414,6 +418,25 @@ export function CreateAccount({ navigation }: CreateAccountProps) {
 									ref={textInputRefs[3]}
 									placeholder="Email"
 									description="Your email address will be used to sign into your account."
+									indicator={
+										<View style={tw`flex-row items-center gap-x-2 mt-6`}>
+											<Image
+												source={
+													isEmailAvailable
+														? require("@/assets/icons/circle-check-green.svg")
+														: require("@/assets/icons/circle-check.svg")
+												}
+												style={tw`w-6 h-6`}
+											/>
+											<Text
+												variant="subheadline"
+												weight="semibold"
+												style={tw`text-content-tertiary`}
+											>
+												Email Available
+											</Text>
+										</View>
+									}
 									error={errors.email?.message}
 									autoComplete="email"
 									keyboardType="email-address"
