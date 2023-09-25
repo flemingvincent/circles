@@ -61,7 +61,8 @@ export function CreateAccount({ navigation }: CreateAccountProps) {
 	const scrollRef = useAnimatedRef<ScrollView>();
 	const alertRef = useRef<any>(null);
 	const translateX = useSharedValue(0);
-	const { createAccount } = useAuth();
+	const { createAccount, checkUsernameAvailability, checkEmailAvailability } =
+		useAuth();
 
 	// The following two variables and functions are used to automatically focus the inputs.
 	type TextInputRef = React.RefObject<TextInput>;
@@ -129,25 +130,65 @@ export function CreateAccount({ navigation }: CreateAccountProps) {
 		}
 
 		if (activeIndex.value === 2) {
-			// TODO: Check if username is available
 			trigger("username").then((isValid) => {
 				if (isValid) {
-					scrollRef.current?.scrollTo({
-						x: SCREEN_WIDTH * (activeIndex.value + 1),
-					});
-					openNextTextInput();
+					try {
+						checkUsernameAvailability(getValues("username")).then(
+							(isUsernameAvailable) => {
+								setIsUsernameAvailable(isUsernameAvailable);
+
+								if (isUsernameAvailable) {
+									setTimeout(() => {
+										scrollRef.current?.scrollTo({
+											x: SCREEN_WIDTH * (activeIndex.value + 1),
+										});
+										openNextTextInput();
+									}, 1000);
+								}
+							},
+						);
+					} catch (error) {
+						// @ts-ignore
+						console.log("Supabase Create Account Error: ", error);
+						alertRef.current?.showAlert({
+							title: "Oops!",
+							// @ts-ignore
+							message: error.message + ".",
+							variant: "error",
+						});
+					}
 				}
 			});
 		}
 
 		if (activeIndex.value === 3) {
-			// TODO: Check if email is available
 			trigger("email").then((isValid) => {
 				if (isValid) {
-					scrollRef.current?.scrollTo({
-						x: SCREEN_WIDTH * (activeIndex.value + 1),
-					});
-					openNextTextInput();
+					try {
+						checkEmailAvailability(getValues("email")).then(
+							(isEmailAvailable) => {
+								setIsEmailAvailable(isEmailAvailable);
+
+								if (isEmailAvailable) {
+									setTimeout(() => {
+										scrollRef.current?.scrollTo({
+											x: SCREEN_WIDTH * (activeIndex.value + 1),
+										});
+										openNextTextInput();
+									}, 1000);
+								}
+							},
+						);
+					} catch (error) {
+						// @ts-ignore
+						console.log("Supabase Create Account Error: ", error);
+						alertRef.current?.showAlert({
+							title: "Oops!",
+							// @ts-ignore
+							message: error.message + ".",
+							variant: "error",
+						});
+					}
 				}
 			});
 		}
@@ -378,9 +419,11 @@ export function CreateAccount({ navigation }: CreateAccountProps) {
 										<View style={tw`flex-row items-center gap-x-2 mt-6`}>
 											<Image
 												source={
-													isUsernameAvailable
+													isUsernameAvailable === null
+														? require("@/assets/icons/circle-check.svg")
+														: isUsernameAvailable
 														? require("@/assets/icons/circle-check-green.svg")
-														: require("@/assets/icons/circle-check.svg")
+														: require("@/assets/icons/circle-x-red.svg")
 												}
 												style={tw`w-6 h-6`}
 											/>
@@ -424,9 +467,11 @@ export function CreateAccount({ navigation }: CreateAccountProps) {
 										<View style={tw`flex-row items-center gap-x-2 mt-6`}>
 											<Image
 												source={
-													isEmailAvailable
+													isEmailAvailable === null
+														? require("@/assets/icons/circle-check.svg")
+														: isEmailAvailable
 														? require("@/assets/icons/circle-check-green.svg")
-														: require("@/assets/icons/circle-check.svg")
+														: require("@/assets/icons/circle-x-red.svg")
 												}
 												style={tw`w-6 h-6`}
 											/>
