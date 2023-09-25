@@ -62,6 +62,7 @@ export function CreateAccount({ navigation }: CreateAccountProps) {
 	const alertRef = useRef<any>(null);
 	const translateX = useSharedValue(0);
 	const { createAccount } = useAuth();
+	const { checkUsername } = useAuth();
 
 	// The following two variables and functions are used to automatically focus the inputs.
 	type TextInputRef = React.RefObject<TextInput>;
@@ -132,10 +133,41 @@ export function CreateAccount({ navigation }: CreateAccountProps) {
 			// TODO: Check if username is available
 			trigger("username").then((isValid) => {
 				if (isValid) {
-					scrollRef.current?.scrollTo({
-						x: SCREEN_WIDTH * (activeIndex.value + 1),
-					});
-					openNextTextInput();
+					let isUsernameAvailableFirebase:boolean = false;
+					
+					try {	
+						checkUsername(getValues("username")).then((value) => {
+							isUsernameAvailableFirebase = value;		
+							
+							if(isUsernameAvailableFirebase == true){
+								clearErrors("username");				
+							} else {					
+								setError("username", {
+									type: "manual",
+									message: "Oops! That username is not available.",
+								  });
+							}
+
+							setIsUsernameAvailable(isUsernameAvailableFirebase);
+
+							if(isUsernameAvailableFirebase){
+								scrollRef.current?.scrollTo({
+									x: SCREEN_WIDTH * (activeIndex.value + 1),
+								});
+								openNextTextInput();
+							}
+						});			
+						
+					} catch (error) {
+						// @ts-ignore
+						console.log("Supabase Create Account Error: ", error);
+						alertRef.current?.showAlert({
+							title: "Oops!",
+							// @ts-ignore
+							message: error.message + ".",
+							variant: "error",
+						});
+					}
 				}
 			});
 		}
@@ -237,6 +269,8 @@ export function CreateAccount({ navigation }: CreateAccountProps) {
 		handleSubmit,
 		trigger,
 		getValues,
+		clearErrors,	
+		setError,
 		formState: { errors, isSubmitting },
 	} = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
