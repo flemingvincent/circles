@@ -63,6 +63,7 @@ export function CreateAccount({ navigation }: CreateAccountProps) {
 	const translateX = useSharedValue(0);
 	const { createAccount } = useAuth();
 	const { checkUsername } = useAuth();
+	const { checkEmail } = useAuth();
 
 	// The following two variables and functions are used to automatically focus the inputs.
 	type TextInputRef = React.RefObject<TextInput>;
@@ -176,10 +177,41 @@ export function CreateAccount({ navigation }: CreateAccountProps) {
 			// TODO: Check if email is available
 			trigger("email").then((isValid) => {
 				if (isValid) {
-					scrollRef.current?.scrollTo({
-						x: SCREEN_WIDTH * (activeIndex.value + 1),
-					});
-					openNextTextInput();
+					let isEmailAvailableFirebase:boolean = false;
+					
+					try {	
+						checkEmail(getValues("email")).then((value) => {
+							isEmailAvailableFirebase = value;		
+							
+							if(isEmailAvailableFirebase == true){
+								clearErrors("email");				
+							} else {					
+								setError("email", {
+									type: "manual",
+									message: "Oops! That email is not available.",
+								  });
+							}
+
+							setIsEmailAvailable(isEmailAvailableFirebase);
+
+							if(isEmailAvailableFirebase){
+								scrollRef.current?.scrollTo({
+									x: SCREEN_WIDTH * (activeIndex.value + 1),
+								});
+								openNextTextInput();
+							}
+						});			
+						
+					} catch (error) {
+						// @ts-ignore
+						console.log("Supabase Create Account Error: ", error);
+						alertRef.current?.showAlert({
+							title: "Oops!",
+							// @ts-ignore
+							message: error.message + ".",
+							variant: "error",
+						});
+					}
 				}
 			});
 		}

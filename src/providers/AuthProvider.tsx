@@ -11,6 +11,9 @@ type AuthContextProps = {
 	checkUsername: (		
 		username: string,		
 	) => Promise<boolean>;
+	checkEmail: (		
+		username: string,		
+	) => Promise<boolean>;
 	createAccount: (
 		email: string,
 		password: string,
@@ -32,6 +35,7 @@ export const AuthContext = createContext<AuthContextProps>({
 	session: null,
 	intialized: false,
 	checkUsername: async () => false,
+	checkEmail: async () => false,
 	createAccount: async () => {},
 	login: async () => {},
 	forgotPassword: async () => {},
@@ -51,6 +55,27 @@ export const AuthProvider = ({ children }: any) => {
 				.from('profiles')
 				.select('*', { count: 'exact', head: true })
 				.eq("username", username);
+
+			if (dbError) {
+				throw dbError;
+			} 
+
+			if(rowCount ==0){	
+				return Promise.resolve(true);
+			} else {		
+				return Promise.resolve(false);
+			}		
+		} catch (error) {
+			throw error;			
+		};
+	};
+
+	const checkEmail = async (email: string) => {	
+		try {				
+			const { count: rowCount, error: dbError } = await supabase
+				.from('profiles')
+				.select('*', { count: 'exact', head: true })
+				.eq("email", email);
 
 			if (dbError) {
 				throw dbError;
@@ -207,6 +232,7 @@ export const AuthProvider = ({ children }: any) => {
 				session,
 				intialized,
 				checkUsername,
+				checkEmail,
 				createAccount,
 				login,
 				forgotPassword,
