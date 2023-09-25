@@ -134,13 +134,13 @@ export function CreateAccount({ navigation }: CreateAccountProps) {
 			// TODO: Check if username is available
 			trigger("username").then((isValid) => {
 				if (isValid) {
-					let isUsernameAvailableFirebase:boolean = false;
+					let isUsernameAvailableDB:boolean = false;
 					
 					try {	
 						checkUsername(getValues("username")).then((value) => {
-							isUsernameAvailableFirebase = value;		
+							isUsernameAvailableDB = value;		
 							
-							if(isUsernameAvailableFirebase == true){
+							if(isUsernameAvailableDB == true){
 								clearErrors("username");				
 							} else {					
 								setError("username", {
@@ -149,9 +149,9 @@ export function CreateAccount({ navigation }: CreateAccountProps) {
 								  });
 							}
 
-							setIsUsernameAvailable(isUsernameAvailableFirebase);
+							setIsUsernameAvailable(isUsernameAvailableDB);
 
-							if(isUsernameAvailableFirebase){
+							if(isUsernameAvailableDB){
 								scrollRef.current?.scrollTo({
 									x: SCREEN_WIDTH * (activeIndex.value + 1),
 								});
@@ -177,13 +177,13 @@ export function CreateAccount({ navigation }: CreateAccountProps) {
 			// TODO: Check if email is available
 			trigger("email").then((isValid) => {
 				if (isValid) {
-					let isEmailAvailableFirebase:boolean = false;
+					let isEmailAvailableDB:boolean = false;
 					
 					try {	
 						checkEmail(getValues("email")).then((value) => {
-							isEmailAvailableFirebase = value;		
+							isEmailAvailableDB = value;		
 							
-							if(isEmailAvailableFirebase == true){
+							if(isEmailAvailableDB == true){
 								clearErrors("email");				
 							} else {					
 								setError("email", {
@@ -192,9 +192,9 @@ export function CreateAccount({ navigation }: CreateAccountProps) {
 								  });
 							}
 
-							setIsEmailAvailable(isEmailAvailableFirebase);
+							setIsEmailAvailable(isEmailAvailableDB);
 
-							if(isEmailAvailableFirebase){
+							if(isEmailAvailableDB){
 								scrollRef.current?.scrollTo({
 									x: SCREEN_WIDTH * (activeIndex.value + 1),
 								});
