@@ -61,9 +61,8 @@ export function CreateAccount({ navigation }: CreateAccountProps) {
 	const scrollRef = useAnimatedRef<ScrollView>();
 	const alertRef = useRef<any>(null);
 	const translateX = useSharedValue(0);
-	const { createAccount } = useAuth();
-	const { checkUsername } = useAuth();
-	const { checkEmail } = useAuth();
+	const { createAccount, checkUsernameAvailability, checkEmailAvailability } =
+		useAuth();
 
 	// The following two variables and functions are used to automatically focus the inputs.
 	type TextInputRef = React.RefObject<TextInput>;
@@ -131,34 +130,23 @@ export function CreateAccount({ navigation }: CreateAccountProps) {
 		}
 
 		if (activeIndex.value === 2) {
-			// TODO: Check if username is available
 			trigger("username").then((isValid) => {
 				if (isValid) {
-					let isUsernameAvailableDB:boolean = false;
-					
-					try {	
-						checkUsername(getValues("username")).then((value) => {
-							isUsernameAvailableDB = value;		
-							
-							if(isUsernameAvailableDB == true){
-								clearErrors("username");				
-							} else {					
-								setError("username", {
-									type: "manual",
-									message: "Oops! That username is not available.",
-								  });
-							}
+					try {
+						checkUsernameAvailability(getValues("username")).then(
+							(isUsernameAvailable) => {
+								setIsUsernameAvailable(isUsernameAvailable);
 
-							setIsUsernameAvailable(isUsernameAvailableDB);
-
-							if(isUsernameAvailableDB){
-								scrollRef.current?.scrollTo({
-									x: SCREEN_WIDTH * (activeIndex.value + 1),
-								});
-								openNextTextInput();
-							}
-						});			
-						
+								if (isUsernameAvailable) {
+									setTimeout(() => {
+										scrollRef.current?.scrollTo({
+											x: SCREEN_WIDTH * (activeIndex.value + 1),
+										});
+										openNextTextInput();
+									}, 1000);
+								}
+							},
+						);
 					} catch (error) {
 						// @ts-ignore
 						console.log("Supabase Create Account Error: ", error);
@@ -174,34 +162,23 @@ export function CreateAccount({ navigation }: CreateAccountProps) {
 		}
 
 		if (activeIndex.value === 3) {
-			// TODO: Check if email is available
 			trigger("email").then((isValid) => {
 				if (isValid) {
-					let isEmailAvailableDB:boolean = false;
-					
-					try {	
-						checkEmail(getValues("email")).then((value) => {
-							isEmailAvailableDB = value;		
-							
-							if(isEmailAvailableDB == true){
-								clearErrors("email");				
-							} else {					
-								setError("email", {
-									type: "manual",
-									message: "Oops! That email is not available.",
-								  });
-							}
+					try {
+						checkEmailAvailability(getValues("email")).then(
+							(isEmailAvailable) => {
+								setIsEmailAvailable(isEmailAvailable);
 
-							setIsEmailAvailable(isEmailAvailableDB);
-
-							if(isEmailAvailableDB){
-								scrollRef.current?.scrollTo({
-									x: SCREEN_WIDTH * (activeIndex.value + 1),
-								});
-								openNextTextInput();
-							}
-						});			
-						
+								if (isEmailAvailable) {
+									setTimeout(() => {
+										scrollRef.current?.scrollTo({
+											x: SCREEN_WIDTH * (activeIndex.value + 1),
+										});
+										openNextTextInput();
+									}, 1000);
+								}
+							},
+						);
 					} catch (error) {
 						// @ts-ignore
 						console.log("Supabase Create Account Error: ", error);
@@ -301,8 +278,6 @@ export function CreateAccount({ navigation }: CreateAccountProps) {
 		handleSubmit,
 		trigger,
 		getValues,
-		clearErrors,	
-		setError,
 		formState: { errors, isSubmitting },
 	} = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
@@ -444,9 +419,11 @@ export function CreateAccount({ navigation }: CreateAccountProps) {
 										<View style={tw`flex-row items-center gap-x-2 mt-6`}>
 											<Image
 												source={
-													isUsernameAvailable
+													isUsernameAvailable === null
+														? require("@/assets/icons/circle-check.svg")
+														: isUsernameAvailable
 														? require("@/assets/icons/circle-check-green.svg")
-														: require("@/assets/icons/circle-check.svg")
+														: require("@/assets/icons/circle-x-red.svg")
 												}
 												style={tw`w-6 h-6`}
 											/>
@@ -490,9 +467,11 @@ export function CreateAccount({ navigation }: CreateAccountProps) {
 										<View style={tw`flex-row items-center gap-x-2 mt-6`}>
 											<Image
 												source={
-													isEmailAvailable
+													isEmailAvailable === null
+														? require("@/assets/icons/circle-check.svg")
+														: isEmailAvailable
 														? require("@/assets/icons/circle-check-green.svg")
-														: require("@/assets/icons/circle-check.svg")
+														: require("@/assets/icons/circle-x-red.svg")
 												}
 												style={tw`w-6 h-6`}
 											/>

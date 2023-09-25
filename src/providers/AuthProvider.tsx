@@ -8,12 +8,8 @@ type AuthContextProps = {
 	user: User | null;
 	session: Session | null;
 	intialized?: boolean;
-	checkUsername: (		
-		username: string,		
-	) => Promise<boolean>;
-	checkEmail: (		
-		username: string,		
-	) => Promise<boolean>;
+	checkUsernameAvailability: (username: string) => Promise<boolean>;
+	checkEmailAvailability: (username: string) => Promise<boolean>;
 	createAccount: (
 		email: string,
 		password: string,
@@ -34,8 +30,8 @@ export const AuthContext = createContext<AuthContextProps>({
 	user: null,
 	session: null,
 	intialized: false,
-	checkUsername: async () => false,
-	checkEmail: async () => false,
+	checkUsernameAvailability: async () => false,
+	checkEmailAvailability: async () => false,
 	createAccount: async () => {},
 	login: async () => {},
 	forgotPassword: async () => {},
@@ -49,46 +45,46 @@ export const AuthProvider = ({ children }: any) => {
 
 	const { setProfile, removeProfile } = useProfileStore();
 
-	const checkUsername = async (username: string) => {	
-		try {				
+	const checkUsernameAvailability = async (username: string) => {
+		try {
 			const { count: rowCount, error: dbError } = await supabase
-				.from('profiles')
-				.select('*', { count: 'exact', head: true })
+				.from("profiles")
+				.select("*", { count: "exact", head: true })
 				.eq("username", username);
 
 			if (dbError) {
 				throw dbError;
-			} 
+			}
 
-			if(rowCount ==0){	
+			if (rowCount === 0) {
 				return Promise.resolve(true);
-			} else {		
+			} else {
 				return Promise.resolve(false);
-			}		
+			}
 		} catch (error) {
-			throw error;			
-		};
+			throw error;
+		}
 	};
 
-	const checkEmail = async (email: string) => {	
-		try {				
+	const checkEmailAvailability = async (email: string) => {
+		try {
 			const { count: rowCount, error: dbError } = await supabase
-				.from('profiles')
-				.select('*', { count: 'exact', head: true })
+				.from("profiles")
+				.select("*", { count: "exact", head: true })
 				.eq("email", email);
 
 			if (dbError) {
 				throw dbError;
-			} 
+			}
 
-			if(rowCount ==0){	
+			if (rowCount === 0) {
 				return Promise.resolve(true);
-			} else {		
+			} else {
 				return Promise.resolve(false);
-			}		
+			}
 		} catch (error) {
-			throw error;			
-		};
+			throw error;
+		}
 	};
 
 	const createAccount = async (
@@ -231,8 +227,8 @@ export const AuthProvider = ({ children }: any) => {
 				user,
 				session,
 				intialized,
-				checkUsername,
-				checkEmail,
+				checkUsernameAvailability,
+				checkEmailAvailability,
 				createAccount,
 				login,
 				forgotPassword,
