@@ -24,6 +24,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import * as z from "zod";
 
 import { Button, Input, Text, Alert } from "@/components/ui";
+import { supabase } from "@/config/supabase";
 import { useAuth } from "@/hooks/useAuth";
 import tw from "@/lib/tailwind";
 import { PublicStackParamList } from "@/routes/public";
@@ -212,6 +213,35 @@ export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
 		};
 	});
 
+	const handleResendForgetPassword =async () => {
+		try {
+			const { error: resetPasswordError } =
+				await supabase.auth.resetPasswordForEmail(email);
+				
+			if(resetPasswordError){
+				console.log("Error");
+				throw resetPasswordError;
+			} else {
+				console.log("Resending Email");
+				alertRef.current?.showAlert({
+					title: "Success!",
+					message: "Verification code sent.",
+					variant: "success",
+				});
+			}
+
+		} catch (error) {
+			console.log("Supabase forgot password error: ", error);
+			alertRef.current?.showAlert({
+				title: "Oops!",
+				// @ts-ignore
+				message: error.message + ".",
+				variant: "error",
+			});
+		}
+		
+	}
+
 	useEffect(() => {
 		setTimeout(() => {
 			alertRef.current?.showAlert({
@@ -221,6 +251,7 @@ export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
 			});
 		}, 500);
 	}, []);
+
 
 	return (
 		<SafeAreaView style={tw`flex-1 bg-white`}>
@@ -453,8 +484,8 @@ export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
 							tw`text-content-secondary mb-4 text-center`,
 							rResendCodeStyle,
 						]}
-						onPress={() => {
-							console.log("Resend code");
+						onPress={ ()=> {
+							handleResendForgetPassword();
 						}}
 					>
 						Didn't receive a code?
