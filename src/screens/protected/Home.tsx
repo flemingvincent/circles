@@ -1,28 +1,144 @@
-import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import BottomSheet, {
+	BottomSheetModal,
+	BottomSheetView,
+} from "@gorhom/bottom-sheet";
 import { Image } from "expo-image";
-import { useEffect, useMemo, useRef } from "react";
+import * as Location from "expo-location";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Platform, View } from "react-native";
 import MapView from "react-native-maps";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { CustomBackdrop } from "@/components/sheet/CustomBackdrop";
+import { CustomMarker } from "@/components/map/CustomMarker";
+import { CustomBackdrop, CustomHandle } from "@/components/sheet";
 import { Button, Text } from "@/components/ui";
-import { useAuth } from "@/hooks/useAuth";
 import tw from "@/lib/tailwind";
+import { useProfileStore } from "@/stores/profileStore";
 
 export default function Home() {
-	const { logout } = useAuth();
+	const { profile } = useProfileStore();
+	const insets = useSafeAreaInsets();
 
+	const [location, setLocation] = useState<Location.LocationObject | null>();
+
+	const mapRef = useRef<MapView>(null);
+	const bottomSheetRef = useRef<BottomSheet>(null);
 	const permissionsModalRef = useRef<BottomSheetModal>(null);
 
-	const permissionSnapPoints = useMemo(() => ["60%"], []);
+	const permissionSnapPoints = useMemo(() => ["64%"], []);
+	const bottomSheetSnapPoints = useMemo(() => ["16%", "48%", "100%"], []);
+
+	const handleLocationServices = async () => {
+		console.log("Requesting permissions");
+
+		const { status } = await Location.requestForegroundPermissionsAsync();
+
+		console.log("Permissions status:", status);
+
+		if (status === "granted") {
+			permissionsModalRef.current?.close();
+
+			const location = await Location.getCurrentPositionAsync();
+			setLocation(location);
+
+			if (mapRef.current) {
+				mapRef.current.animateCamera(
+					{
+						center: {
+							latitude: location.coords.latitude,
+							longitude: location.coords.longitude,
+						},
+						heading: 0,
+						pitch: 0,
+						zoom: 14,
+						altitude: 20000,
+					},
+					{ duration: 1000 },
+				);
+			}
+		}
+
+		permissionsModalRef.current?.close();
+	};
+
+	// Checking for permissions
+	// If granted, get current location
+	// Else, show permissions modal
+	useEffect(() => {
+		(async () => {
+			const { status } = await Location.getForegroundPermissionsAsync();
+
+			if (status === "granted") {
+				const location = await Location.getCurrentPositionAsync();
+				setLocation(location);
+
+				if (mapRef.current) {
+					mapRef.current.animateCamera(
+						{
+							center: {
+								latitude: location.coords.latitude,
+								longitude: location.coords.longitude,
+							},
+							heading: 0,
+							pitch: 0,
+							zoom: 14,
+							altitude: 20000,
+						},
+						{ duration: 1000 },
+					);
+				}
+			} else {
+				permissionsModalRef.current?.present();
+			}
+		})();
+	}, []);
+
+	// Watch for location changes
+	useEffect(() => {
+		if (location) {
+			let locationWatcher: Location.LocationSubscription | null = null;
+
+			(async () => {
+				locationWatcher = await Location.watchPositionAsync(
+					{
+						accuracy: Location.Accuracy.Balanced,
+						timeInterval: 5000,
+						distanceInterval: 100,
+					},
+					(newLocation) => {
+						setLocation(newLocation);
+					},
+				);
+			})();
+
+			return () => {
+				if (locationWatcher) {
+					locationWatcher.remove();
+				}
+			};
+		}
+	}, []);
 
 	useEffect(() => {
-		permissionsModalRef.current?.present();
-	}, []);
+		console.log(location);
+	}, [location]);
 
 	return (
 		<View style={tw`flex-1`}>
-			<MapView style={tw`flex-1`} userInterfaceStyle="light" />
+			<MapView
+				ref={mapRef}
+				style={tw`flex-1`}
+				userInterfaceStyle="light"
+				pitchEnabled={false}
+			>
+				{location && (
+					<CustomMarker
+						location={location.coords}
+						avatar_url={profile?.avatar_url}
+					/>
+				)}
+			</MapView>
+			{/* Permissions Modal */}
 			<BottomSheetModal
 				ref={permissionsModalRef}
 				snapPoints={permissionSnapPoints}
@@ -53,15 +169,24 @@ export default function Home() {
 						Don't worry, your location is only visible to groups you're part of,
 						and you can turn it off whenever you want.
 					</Text>
-					{/* Logout just for testing */}
-					<Button
-						label="Logout"
-						onPress={() => {
-							logout();
-						}}
-					/>
+					<Button label="Enable" onPress={handleLocationServices} />
 				</View>
 			</BottomSheetModal>
+			{/* Bottom Sheet */}
+			<BottomSheet
+				ref={bottomSheetRef}
+				snapPoints={bottomSheetSnapPoints}
+				index={0}
+				topInset={insets.top}
+				handleComponent={CustomHandle}
+				backgroundStyle={tw`rounded-t-[2.25rem]`}
+			>
+				<BottomSheetView style={tw`p-4`}>
+					<Text variant="body" weight="semibold">
+						Circle Name
+					</Text>
+				</BottomSheetView>
+			</BottomSheet>
 		</View>
 	);
 }
