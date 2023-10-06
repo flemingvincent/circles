@@ -119,7 +119,7 @@ export default function Home() {
 				enablePanDownToClose={false}
 			>
 				<Image
-					source={require("@/assets/images/go-to-settings.png")}
+					source={require("@/assets/images/enable-location-services.png")}
 					style={tw`flex-1 rounded-t-[2.25rem]`}
 				/>
 				<View style={tw`px-8 py-6`}>
