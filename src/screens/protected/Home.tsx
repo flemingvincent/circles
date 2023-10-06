@@ -74,7 +74,7 @@ export default function Home() {
 			if (status === "undetermined") {
 				permissionsModalRef.current?.present();
 			} else if (status === "denied") {
-				return null;
+				permissionsModalRef.current?.present();
 			} else {
 				try {
 					const location = await Location.getCurrentPositionAsync({});
@@ -119,7 +119,7 @@ export default function Home() {
 				enablePanDownToClose={false}
 			>
 				<Image
-					source={require("@/assets/images/location-services.svg")}
+					source={require("@/assets/images/enable-location-services.png")}
 					style={tw`flex-1 rounded-t-[2.25rem]`}
 				/>
 				<View style={tw`px-8 py-6`}>
@@ -132,9 +132,9 @@ export default function Home() {
 						style={tw`text-content-secondary mb-6`}
 					>
 						To enhance your experience, we recommend enabling location services.
-						This will let you share your whereabouts with friends and family.
-						Don't worry, your location is only visible to groups you're part of,
-						and you can turn it off whenever you want.
+						This will let you share your whereabouts with friends. Don't worry,
+						your location is only visible to circles you're part of, and you can
+						turn it off whenever you want.
 					</Text>
 					<Button label="Enable" onPress={handleLocationServices} />
 				</View>
