@@ -213,12 +213,12 @@ export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
 		};
 	});
 
-	const handleResendForgetPassword =async () => {
+	const handleResendForgetPassword = async () => {
 		try {
 			const { error: resetPasswordError } =
 				await supabase.auth.resetPasswordForEmail(email);
-				
-			if(resetPasswordError){
+
+			if (resetPasswordError) {
 				console.log("Error");
 				throw resetPasswordError;
 			} else {
@@ -229,7 +229,6 @@ export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
 					variant: "success",
 				});
 			}
-
 		} catch (error) {
 			console.log("Supabase forgot password error: ", error);
 			alertRef.current?.showAlert({
@@ -239,8 +238,7 @@ export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
 				variant: "error",
 			});
 		}
-		
-	}
+	};
 
 	useEffect(() => {
 		setTimeout(() => {
@@ -251,7 +249,6 @@ export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
 			});
 		}, 500);
 	}, []);
-
 
 	return (
 		<SafeAreaView style={tw`flex-1 bg-white`}>
@@ -484,7 +481,7 @@ export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
 							tw`text-content-secondary mb-4 text-center`,
 							rResendCodeStyle,
 						]}
-						onPress={ ()=> {
+						onPress={() => {
 							handleResendForgetPassword();
 						}}
 					>
