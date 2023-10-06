@@ -25,11 +25,52 @@ export default function Home() {
 	const permissionSnapPoints = useMemo(() => ["64%"], []);
 	const bottomSheetSnapPoints = useMemo(() => ["16%", "48%", "100%"], []);
 
-	// Check location services status: DENIED, GRANTED, UNDETERMINED
+	const handleMapAnimation = (location: Location.LocationObject) => {
+		mapRef.current?.animateCamera(
+			{
+				center: {
+					latitude: location.coords.latitude,
+					longitude: location.coords.longitude,
+				},
+				heading: 0,
+				pitch: 0,
+				zoom: 14,
+				altitude: 20000,
+			},
+			{ duration: 1000 },
+		);
+	};
+
+	const initializeLocationWatcher = async () => {
+		await Location.watchPositionAsync(
+			{
+				distanceInterval: 75,
+			},
+			(newLocation) => {
+				setLocation(newLocation);
+				console.log("Location updated");
+			},
+		);
+	};
+
+	const handleLocationServices = async () => {
+		const { status } = await Location.requestForegroundPermissionsAsync();
+
+		if (status === "granted") {
+			const location = await Location.getCurrentPositionAsync({});
+			setLocation(location);
+
+			permissionsModalRef.current?.dismiss();
+
+			handleMapAnimation(location);
+
+			initializeLocationWatcher();
+		}
+	};
+
 	useEffect(() => {
 		(async () => {
 			const { status } = await Location.getForegroundPermissionsAsync();
-			console.log("status", status);
 			if (status === "undetermined") {
 				permissionsModalRef.current?.present();
 			} else if (status === "denied") {
@@ -37,83 +78,16 @@ export default function Home() {
 			} else {
 				try {
 					const location = await Location.getCurrentPositionAsync({});
-					console.log("location", location);
 					setLocation(location);
-					console.log("Location set");
 
-					mapRef.current?.animateCamera(
-						{
-							center: {
-								latitude: location.coords.latitude,
-								longitude: location.coords.longitude,
-							},
-							heading: 0,
-							pitch: 0,
-							zoom: 14,
-							altitude: 20000,
-						},
-						{ duration: 1000 },
-					);
-					console.log("Map animated");
+					handleMapAnimation(location);
+
+					initializeLocationWatcher();
 				} catch (error) {
 					console.log("error", error);
 				}
 			}
 		})();
-	}, []);
-
-	const handleLocationServices = async () => {
-		const { status } = await Location.requestForegroundPermissionsAsync();
-		console.log("status", status);
-		if (status === "granted") {
-			const location = await Location.getCurrentPositionAsync({});
-			console.log("location", location);
-			setLocation(location);
-			console.log("Location set");
-
-			permissionsModalRef.current?.dismiss();
-			console.log("Modal dismissed");
-
-			mapRef.current?.animateCamera(
-				{
-					center: {
-						latitude: location.coords.latitude,
-						longitude: location.coords.longitude,
-					},
-					heading: 0,
-					pitch: 0,
-					zoom: 14,
-					altitude: 20000,
-				},
-				{ duration: 1000 },
-			);
-			console.log("Map animated");
-		}
-	};
-
-	useEffect(() => {
-		if (location) {
-			let locationWatcher: Location.LocationSubscription | null = null;
-
-			(async () => {
-				locationWatcher = await Location.watchPositionAsync(
-					{
-						accuracy: Location.Accuracy.BestForNavigation,
-						timeInterval: 5000,
-						distanceInterval: 5,
-					},
-					(newLocation) => {
-						setLocation(newLocation);
-					},
-				);
-			})();
-
-			return () => {
-				if (locationWatcher) {
-					locationWatcher.remove();
-				}
-			};
-		}
 	}, []);
 
 	return (
@@ -123,7 +97,6 @@ export default function Home() {
 				style={tw`flex-1`}
 				userInterfaceStyle="light"
 				pitchEnabled={false}
-				mapType="standard"
 			>
 				{location && (
 					<CustomMarker
