@@ -1,7 +1,4 @@
-import BottomSheet, {
-	BottomSheetModal,
-	BottomSheetView,
-} from "@gorhom/bottom-sheet";
+import BottomSheet, { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { Image } from "expo-image";
 import * as Location from "expo-location";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -19,7 +16,7 @@ export default function Home() {
 	const { profile } = useProfileStore();
 	const insets = useSafeAreaInsets();
 
-	const [location, setLocation] = useState<Location.LocationObject | null>();
+	const [location, setLocation] = useState<Location.LocationObject>();
 
 	const mapRef = useRef<MapView>(null);
 	const bottomSheetRef = useRef<BottomSheet>(null);
@@ -28,52 +25,23 @@ export default function Home() {
 	const permissionSnapPoints = useMemo(() => ["64%"], []);
 	const bottomSheetSnapPoints = useMemo(() => ["16%", "48%", "100%"], []);
 
-	const handleLocationServices = async () => {
-		console.log("Requesting permissions");
-
-		const { status } = await Location.requestForegroundPermissionsAsync();
-
-		console.log("Permissions status:", status);
-
-		if (status === "granted") {
-			permissionsModalRef.current?.close();
-
-			const location = await Location.getCurrentPositionAsync();
-			setLocation(location);
-
-			if (mapRef.current) {
-				mapRef.current.animateCamera(
-					{
-						center: {
-							latitude: location.coords.latitude,
-							longitude: location.coords.longitude,
-						},
-						heading: 0,
-						pitch: 0,
-						zoom: 14,
-						altitude: 20000,
-					},
-					{ duration: 1000 },
-				);
-			}
-		}
-
-		permissionsModalRef.current?.close();
-	};
-
-	// Checking for permissions
-	// If granted, get current location
-	// Else, show permissions modal
+	// Check location services status: DENIED, GRANTED, UNDETERMINED
 	useEffect(() => {
 		(async () => {
 			const { status } = await Location.getForegroundPermissionsAsync();
+			console.log("status", status);
+			if (status === "undetermined") {
+				permissionsModalRef.current?.present();
+			} else if (status === "denied") {
+				return null;
+			} else {
+				try {
+					const location = await Location.getCurrentPositionAsync({});
+					console.log("location", location);
+					setLocation(location);
+					console.log("Location set");
 
-			if (status === "granted") {
-				const location = await Location.getCurrentPositionAsync();
-				setLocation(location);
-
-				if (mapRef.current) {
-					mapRef.current.animateCamera(
+					mapRef.current?.animateCamera(
 						{
 							center: {
 								latitude: location.coords.latitude,
@@ -86,14 +54,43 @@ export default function Home() {
 						},
 						{ duration: 1000 },
 					);
+					console.log("Map animated");
+				} catch (error) {
+					console.log("error", error);
 				}
-			} else {
-				permissionsModalRef.current?.present();
 			}
 		})();
 	}, []);
 
-	// Watch for location changes
+	const handleLocationServices = async () => {
+		const { status } = await Location.requestForegroundPermissionsAsync();
+		console.log("status", status);
+		if (status === "granted") {
+			const location = await Location.getCurrentPositionAsync({});
+			console.log("location", location);
+			setLocation(location);
+			console.log("Location set");
+
+			permissionsModalRef.current?.dismiss();
+			console.log("Modal dismissed");
+
+			mapRef.current?.animateCamera(
+				{
+					center: {
+						latitude: location.coords.latitude,
+						longitude: location.coords.longitude,
+					},
+					heading: 0,
+					pitch: 0,
+					zoom: 14,
+					altitude: 20000,
+				},
+				{ duration: 1000 },
+			);
+			console.log("Map animated");
+		}
+	};
+
 	useEffect(() => {
 		if (location) {
 			let locationWatcher: Location.LocationSubscription | null = null;
@@ -101,9 +98,9 @@ export default function Home() {
 			(async () => {
 				locationWatcher = await Location.watchPositionAsync(
 					{
-						accuracy: Location.Accuracy.Balanced,
+						accuracy: Location.Accuracy.BestForNavigation,
 						timeInterval: 5000,
-						distanceInterval: 100,
+						distanceInterval: 5,
 					},
 					(newLocation) => {
 						setLocation(newLocation);
@@ -119,10 +116,6 @@ export default function Home() {
 		}
 	}, []);
 
-	useEffect(() => {
-		console.log(location);
-	}, [location]);
-
 	return (
 		<View style={tw`flex-1`}>
 			<MapView
@@ -130,6 +123,7 @@ export default function Home() {
 				style={tw`flex-1`}
 				userInterfaceStyle="light"
 				pitchEnabled={false}
+				mapType="standard"
 			>
 				{location && (
 					<CustomMarker
@@ -173,6 +167,7 @@ export default function Home() {
 				</View>
 			</BottomSheetModal>
 			{/* Bottom Sheet */}
+			{/* @ts-ignore */}
 			<BottomSheet
 				ref={bottomSheetRef}
 				snapPoints={bottomSheetSnapPoints}
@@ -180,13 +175,7 @@ export default function Home() {
 				topInset={insets.top}
 				handleComponent={CustomHandle}
 				backgroundStyle={tw`rounded-t-[2.25rem]`}
-			>
-				<BottomSheetView style={tw`p-4`}>
-					<Text variant="body" weight="semibold">
-						Circle Name
-					</Text>
-				</BottomSheetView>
-			</BottomSheet>
+			/>
 		</View>
 	);
 }

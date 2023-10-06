@@ -17,7 +17,7 @@ export const CustomMarker = ({
 	status,
 }: ICustomMarkerProps) => {
 	return (
-		<Marker coordinate={location as LatLng}>
+		<Marker style={tw``} coordinate={location as LatLng}>
 			<Avatar
 				avatar_url={avatar_url}
 				status={status}
