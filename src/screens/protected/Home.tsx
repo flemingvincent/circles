@@ -2,7 +2,7 @@ import BottomSheet, { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { Image } from "expo-image";
 import * as Location from "expo-location";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Platform, View, Linking } from "react-native";
+import { Platform, View, Linking, AppState } from "react-native";
 import MapView from "react-native-maps";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -17,11 +17,14 @@ export default function Home() {
 	const insets = useSafeAreaInsets();
 
 	const [location, setLocation] = useState<Location.LocationObject>();
-	const [sharingLocationDenied, setSharingLocationDenied] = useState(false);
+	const [locationPermissionStatus, setLocationPermissionStatus] =
+		useState("undetermined");
 
 	const mapRef = useRef<MapView>(null);
 	const bottomSheetRef = useRef<BottomSheet>(null);
 	const permissionsModalRef = useRef<BottomSheetModal>(null);
+	// Used to track if user navigates away from the app and returns.
+	const appStateRef = useRef(AppState.currentState);
 
 	const permissionSnapPoints = useMemo(() => ["64%"], []);
 	const bottomSheetSnapPoints = useMemo(() => ["16%", "48%", "100%"], []);
@@ -49,51 +52,72 @@ export default function Home() {
 			},
 			(newLocation) => {
 				setLocation(newLocation);
-				console.log("Location updated");
 			},
 		);
 	};
 
-	const handleLocationServices = async () => {
+	// Displays an in-app popup regarding location services.
+	const requestPermissionsAndUpdateScreen = async () => {
 		const { status } = await Location.requestForegroundPermissionsAsync();
+		updateModalAndPossiblyAnimateMap(status);
+	};
 
+	// Checks location services in the background. This is needed if a user
+	// goes to the settings page and returns back to the app.
+	const checkPermissionsAndUpdateScreen = async () => {
+		const { status } = await Location.getForegroundPermissionsAsync();
+		updateModalAndPossiblyAnimateMap(status);
+	};
+
+	// Either displays the modal or begins the map animation process.
+	const updateModalAndPossiblyAnimateMap = (
+		status: Location.PermissionStatus,
+	) => {
+		setLocationPermissionStatus(status);
 		if (status === "granted") {
+			permissionsModalRef.current?.dismiss();
+			getCurrPositionAndAnimateMap();
+		} else {
+			permissionsModalRef.current?.present();
+		}
+	};
+
+	const getCurrPositionAndAnimateMap = async () => {
+		try {
 			const location = await Location.getCurrentPositionAsync({});
 			setLocation(location);
-
-			permissionsModalRef.current?.dismiss();
 
 			handleMapAnimation(location);
 
 			initializeLocationWatcher();
-		} else {
-			setSharingLocationDenied(true);
+		} catch (error) {
+			console.log("error", error);
 		}
+	};
+
+	// A listener that detects when a user returns/leaves the app.
+	const initializeAppStateListener = () => {
+		AppState.addEventListener("change", async (nextAppState) => {
+			if (
+				appStateRef.current.match(/inactive|background/) &&
+				nextAppState === "active"
+			) {
+				// App has come to the foreground. Update the screen
+				// in case permissions have been updated.
+				await checkPermissionsAndUpdateScreen();
+			}
+			appStateRef.current = nextAppState;
+		});
 	};
 
 	useEffect(() => {
 		(async () => {
-			const { status } = await Location.getForegroundPermissionsAsync();
-			if (status === "undetermined") {
-				permissionsModalRef.current?.present();
-			} else if (status === "denied") {
-				setSharingLocationDenied(true);
-				permissionsModalRef.current?.present();
-			} else {
-				try {
-					const location = await Location.getCurrentPositionAsync({});
-					setLocation(location);
-
-					handleMapAnimation(location);
-
-					initializeLocationWatcher();
-				} catch (error) {
-					console.log("error", error);
-				}
-			}
+			checkPermissionsAndUpdateScreen();
+			initializeAppStateListener();
 		})();
 	}, []);
 
+	const showGoToSettingsModal = locationPermissionStatus === "denied";
 	return (
 		<View style={tw`flex-1`}>
 			<MapView
@@ -118,13 +142,15 @@ export default function Home() {
 				style={tw`mx-4`}
 				backgroundStyle={tw`rounded-[2.25rem]`}
 				handleStyle={tw`absolute self-center`}
-				handleIndicatorStyle={sharingLocationDenied ? tw`bg-border`: tw`bg-transparent`}
+				handleIndicatorStyle={
+					showGoToSettingsModal ? tw`bg-border` : tw`bg-transparent`
+				}
 				backdropComponent={CustomBackdrop}
-				enablePanDownToClose={sharingLocationDenied ? true : false}
+				enablePanDownToClose={!!showGoToSettingsModal}
 			>
 				<Image
 					source={
-						sharingLocationDenied
+						showGoToSettingsModal
 							? require("@/assets/images/go-to-settings.png")
 							: require("@/assets/images/enable-location-services.png")
 					}
@@ -140,20 +166,20 @@ export default function Home() {
 						style={tw`text-content-secondary mb-6`}
 					>
 						To enhance your experience, we recommend enabling location services.
-						{sharingLocationDenied
-							? `Head over to your device settings to enable. Don't worry, ` +
+						{showGoToSettingsModal
+							? ` Head over to your device settings to enable. Don't worry, ` +
 							  `your location is only visible to circles you're part of, ` +
 							  `and you can turn it off whenever you want.`
-							: `This will let you share your whereabouts with friends. ` +
+							: ` This will let you share your whereabouts with friends. ` +
 							  `Don't worry, your location is only visible to circles` +
 							  `you're part of, and you can turn it off whenever you want.`}
 					</Text>
 					<Button
-						label={sharingLocationDenied ? "Go to Settings" : "Enable"}
+						label={showGoToSettingsModal ? "Go to Settings" : "Enable"}
 						onPress={
-							sharingLocationDenied
-								? () => {Linking.openSettings()}
-								: handleLocationServices
+							showGoToSettingsModal
+								? Linking.openSettings
+								: requestPermissionsAndUpdateScreen
 						}
 					/>
 				</View>
