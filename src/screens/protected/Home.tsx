@@ -2,7 +2,7 @@ import BottomSheet, { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { Image } from "expo-image";
 import * as Location from "expo-location";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Platform, View } from "react-native";
+import { Platform, View, Linking } from "react-native";
 import MapView from "react-native-maps";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -17,6 +17,7 @@ export default function Home() {
 	const insets = useSafeAreaInsets();
 
 	const [location, setLocation] = useState<Location.LocationObject>();
+	const [sharingLocationDenied, setSharingLocationDenied] = useState(false);
 
 	const mapRef = useRef<MapView>(null);
 	const bottomSheetRef = useRef<BottomSheet>(null);
@@ -65,6 +66,8 @@ export default function Home() {
 			handleMapAnimation(location);
 
 			initializeLocationWatcher();
+		} else {
+			setSharingLocationDenied(true);
 		}
 	};
 
@@ -74,6 +77,7 @@ export default function Home() {
 			if (status === "undetermined") {
 				permissionsModalRef.current?.present();
 			} else if (status === "denied") {
+				setSharingLocationDenied(true);
 				permissionsModalRef.current?.present();
 			} else {
 				try {
@@ -114,12 +118,16 @@ export default function Home() {
 				style={tw`mx-4`}
 				backgroundStyle={tw`rounded-[2.25rem]`}
 				handleStyle={tw`absolute self-center`}
-				handleIndicatorStyle={tw`bg-border`}
+				handleIndicatorStyle={sharingLocationDenied ? tw`bg-border`: tw`bg-transparent`}
 				backdropComponent={CustomBackdrop}
-				enablePanDownToClose={false}
+				enablePanDownToClose={sharingLocationDenied ? true : false}
 			>
 				<Image
-					source={require("@/assets/images/enable-location-services.png")}
+					source={
+						sharingLocationDenied
+							? require("@/assets/images/go-to-settings.png")
+							: require("@/assets/images/enable-location-services.png")
+					}
 					style={tw`flex-1 rounded-t-[2.25rem]`}
 				/>
 				<View style={tw`px-8 py-6`}>
@@ -132,11 +140,22 @@ export default function Home() {
 						style={tw`text-content-secondary mb-6`}
 					>
 						To enhance your experience, we recommend enabling location services.
-						This will let you share your whereabouts with friends. Don't worry,
-						your location is only visible to circles you're part of, and you can
-						turn it off whenever you want.
+						{sharingLocationDenied
+							? `Head over to your device settings to enable. Don't worry, ` +
+							  `your location is only visible to circles you're part of, ` +
+							  `and you can turn it off whenever you want.`
+							: `This will let you share your whereabouts with friends. ` +
+							  `Don't worry, your location is only visible to circles` +
+							  `you're part of, and you can turn it off whenever you want.`}
 					</Text>
-					<Button label="Enable" onPress={handleLocationServices} />
+					<Button
+						label={sharingLocationDenied ? "Go to Settings" : "Enable"}
+						onPress={
+							sharingLocationDenied
+								? () => {Linking.openSettings()}
+								: handleLocationServices
+						}
+					/>
 				</View>
 			</BottomSheetModal>
 			{/* Bottom Sheet */}
