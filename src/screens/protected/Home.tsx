@@ -167,14 +167,13 @@ export default function Home() {
 					>
 						To enhance your experience, we recommend enabling location services.
 						{showGoToSettingsModal
-							? ` Head over to your device settings to enable. Don't worry, ` +
-							  `your location is only visible to circles you're part of, ` +
-							  `and you can turn it off whenever you want.`
-							: ` This will let you share your whereabouts with friends. ` +
-							  `Don't worry, your location is only visible to circles` +
-							  `you're part of, and you can turn it off whenever you want.`}
+							? " Head over to your device settings to enable. "
+							: " This will let you share your whereabouts with friends. "}
+						Dont worry, your location is only visible to circles you're part of,
+						and you can turn it off whenever you want.
 					</Text>
 					<Button
+						variant={showGoToSettingsModal ? "secondary" : "primary"}
 						label={showGoToSettingsModal ? "Go to Settings" : "Enable"}
 						onPress={
 							showGoToSettingsModal
