@@ -197,7 +197,7 @@ export default function Home() {
 				backgroundStyle={tw`rounded-t-[2.25rem]`}
 			>
 				{/* EmptyState */}
-				<BottomSheetView style={tw`flex-1 justify-evenly gap-y-6 py-4`}>
+				<BottomSheetView style={tw`flex-1 justify-center gap-y-6 py-4`}>
 					<Image
 						style={tw`h-1/3`}
 						source={require("@/assets/images/join-or-create-circle.png")}
