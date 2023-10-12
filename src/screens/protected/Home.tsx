@@ -1,4 +1,7 @@
-import BottomSheet, { BottomSheetModal } from "@gorhom/bottom-sheet";
+import BottomSheet, {
+	BottomSheetModal,
+	BottomSheetView,
+} from "@gorhom/bottom-sheet";
 import { Image } from "expo-image";
 import * as Location from "expo-location";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -28,6 +31,8 @@ export default function Home() {
 
 	const permissionSnapPoints = useMemo(() => ["64%"], []);
 	const bottomSheetSnapPoints = useMemo(() => ["16%", "48%", "100%"], []);
+
+	const showGoToSettingsModal = locationPermissionStatus === "denied";
 
 	const handleMapAnimation = (location: Location.LocationObject) => {
 		mapRef.current?.animateCamera(
@@ -117,7 +122,6 @@ export default function Home() {
 		})();
 	}, []);
 
-	const showGoToSettingsModal = locationPermissionStatus === "denied";
 	return (
 		<View style={tw`flex-1`}>
 			<MapView
@@ -184,7 +188,6 @@ export default function Home() {
 				</View>
 			</BottomSheetModal>
 			{/* Bottom Sheet */}
-			{/* @ts-ignore */}
 			<BottomSheet
 				ref={bottomSheetRef}
 				snapPoints={bottomSheetSnapPoints}
@@ -192,7 +195,31 @@ export default function Home() {
 				topInset={insets.top}
 				handleComponent={CustomHandle}
 				backgroundStyle={tw`rounded-t-[2.25rem]`}
-			/>
+			>
+				{/* EmptyState */}
+				<BottomSheetView style={tw`flex-1 justify-evenly gap-y-6 py-4`}>
+					<Image
+						style={tw`h-1/3`}
+						source={require("@/assets/images/join-or-create-circle.png")}
+					/>
+					<View style={tw`px-12 gap-y-4`}>
+						<Text variant="title2" weight="semibold" style={tw`text-center`}>
+							Let's get you started!
+						</Text>
+						<Text
+							variant="body"
+							weight="medium"
+							style={tw`text-center text-content-secondary`}
+						>
+							Create your own circle or join one to get started.
+						</Text>
+					</View>
+					<View style={tw`px-12 gap-y-4`}>
+						<Button variant="primary" label="Create a Circle" />
+						<Button variant="outline" label="Join a Circle" />
+					</View>
+				</BottomSheetView>
+			</BottomSheet>
 		</View>
 	);
 }
