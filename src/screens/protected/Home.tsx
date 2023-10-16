@@ -12,6 +12,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CustomMarker } from "@/components/map/CustomMarker";
 import { CustomBackdrop, CustomHandle } from "@/components/sheet";
 import { Button, Text } from "@/components/ui";
+import { useLocation } from "@/hooks/useLocation";
 import tw from "@/lib/tailwind";
 import { useProfileStore } from "@/stores/profileStore";
 
@@ -66,6 +67,8 @@ export default function Home() {
 		const { status } = await Location.requestForegroundPermissionsAsync();
 		updateModalAndPossiblyAnimateMap(status);
 	};
+	// Function to update user location in database
+	const { updateUserLocation } = useLocation();
 
 	// Checks location services in the background. This is needed if a user
 	// goes to the settings page and returns back to the app.
@@ -87,11 +90,26 @@ export default function Home() {
 		}
 	};
 
+	const updateLocationInDatabase = (location: Location.LocationObject) => {
+		if (location) {
+			const { latitude, longitude } = location.coords;
+			const userId = profile?.id;
+
+			updateUserLocation(userId, latitude, longitude)
+				.then(() => {
+					console.log("User location updated successfully.");
+				})
+				.catch((error) => {
+					console.error("Error updating user location:", error);
+				});
+		}
+	};
+
 	const getCurrPositionAndAnimateMap = async () => {
 		try {
 			const location = await Location.getCurrentPositionAsync({});
 			setLocation(location);
-
+			updateLocationInDatabase(location);
 			handleMapAnimation(location);
 
 			initializeLocationWatcher();
