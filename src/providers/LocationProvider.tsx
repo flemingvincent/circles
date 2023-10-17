@@ -20,13 +20,15 @@ export const LocationProvider = ({ children }: any) => {
 		latitude: number,
 		longitude: number,
 	) => {
+		console.log("updateUserLocation function called with  Id:", userId);
 		const location = `POINT(${longitude} ${latitude})`;
 
 		try {
+
 			const { error } = await supabase
 				.from("profiles")
-				.eq("id", userId)
-				.update({ location });
+				.update({ location })
+				.eq("id", userId);
 
 			if (error) {
 				throw error;

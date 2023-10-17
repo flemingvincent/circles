@@ -67,8 +67,6 @@ export default function Home() {
 		const { status } = await Location.requestForegroundPermissionsAsync();
 		updateModalAndPossiblyAnimateMap(status);
 	};
-	// Function to update user location in database
-	const { updateUserLocation } = useLocation();
 
 	// Checks location services in the background. This is needed if a user
 	// goes to the settings page and returns back to the app.
@@ -90,10 +88,28 @@ export default function Home() {
 		}
 	};
 
+	const { updateUserLocation } = useLocation();
+
 	const updateLocationInDatabase = (location: Location.LocationObject) => {
 		if (location) {
+			// Function to update user location in database
 			const { latitude, longitude } = location.coords;
+
 			const userId = profile?.id;
+
+			if (!userId) {
+				console.error("User ID not found. Unable to update location.");
+				return;
+			}
+
+			console.log(
+				"Calling updateUserLocation with userId:",
+				userId,
+				"latitude:",
+				latitude,
+				"longitude:",
+				longitude,
+			);
 
 			updateUserLocation(userId, latitude, longitude)
 				.then(() => {
