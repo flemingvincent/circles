@@ -2,6 +2,7 @@ import BottomSheet, {
 	BottomSheetModal,
 	BottomSheetView,
 } from "@gorhom/bottom-sheet";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Image } from "expo-image";
 import * as Location from "expo-location";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -10,14 +11,27 @@ import MapView from "react-native-maps";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { CustomMarker } from "@/components/map/CustomMarker";
-import { CustomBackdrop, CustomHandle } from "@/components/sheet";
+import { CustomBackdrop, CustomHandle, HandleProps } from "@/components/sheet";
 import { Button, Text } from "@/components/ui";
 import tw from "@/lib/tailwind";
+import { ProtectedStackParamList } from "@/routes/protected";
 import { useProfileStore } from "@/stores/profileStore";
 
-export default function Home() {
+type HomeProps = NativeStackScreenProps<ProtectedStackParamList, "Home">;
+
+export default function Home({ navigation }: HomeProps) {
 	const { profile } = useProfileStore();
 	const insets = useSafeAreaInsets();
+
+	const customHandleProps: HandleProps = {
+		navigation,
+		animatedIndex: {
+			value: 0,
+		},
+		animatedPosition: {
+			value: 0,
+		},
+	};
 
 	const [location, setLocation] = useState<Location.LocationObject>();
 	const [locationPermissionStatus, setLocationPermissionStatus] =
@@ -193,7 +207,7 @@ export default function Home() {
 				snapPoints={bottomSheetSnapPoints}
 				index={0}
 				topInset={insets.top}
-				handleComponent={CustomHandle}
+				handleComponent={() => CustomHandle(customHandleProps)}
 				backgroundStyle={tw`rounded-t-[2.25rem]`}
 			>
 				{/* EmptyState */}

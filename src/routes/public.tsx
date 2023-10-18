@@ -9,6 +9,7 @@ import {
 
 export type PublicStackParamList = {
 	Welcome: undefined;
+	Settings: undefined;
 	Login: undefined;
 	CreateAccount: undefined;
 	ForgotPassword: { email: string };
