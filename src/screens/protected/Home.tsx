@@ -102,15 +102,6 @@ export default function Home() {
 				return;
 			}
 
-			console.log(
-				"Calling updateUserLocation with userId:",
-				userId,
-				"latitude:",
-				latitude,
-				"longitude:",
-				longitude,
-			);
-
 			updateUserLocation(userId, latitude, longitude)
 				.then(() => {
 					console.log("User location updated successfully.");
