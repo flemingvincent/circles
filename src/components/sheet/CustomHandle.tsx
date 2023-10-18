@@ -31,8 +31,8 @@ export const CustomHandle: React.FC<HandleProps> = ({ navigation }) => {
 				</View>
 				<TouchableOpacity onPress={() => navigation.navigate("Settings")}>
 					<Image
-						source={require("@/assets/icons/setting.svg")}
-						style={tw`w-11 h-11 rounded-full`}
+						source={require("@/assets/icons/settings.svg")}
+						style={tw`w-6 h-6 rounded-full`}
 					/>
 				</TouchableOpacity>
 			</View>
