@@ -1,4 +1,6 @@
-import { View } from "react-native";
+import { BottomSheetHandleProps } from "@gorhom/bottom-sheet";
+import { Image } from "expo-image";
+import { View, TouchableOpacity } from "react-native";
 
 import { Avatar } from "../ui/Avatar";
 import { Text } from "../ui/Text";
@@ -6,9 +8,12 @@ import { Text } from "../ui/Text";
 import tw from "@/lib/tailwind";
 import { useProfileStore } from "@/stores/profileStore";
 
-export const CustomHandle = () => {
-	const { profile } = useProfileStore();
+export interface HandleProps extends BottomSheetHandleProps {
+	navigation?: any;
+}
 
+export const CustomHandle: React.FC<HandleProps> = ({ navigation }) => {
+	const { profile } = useProfileStore();
 	return (
 		<View>
 			<View
@@ -24,6 +29,12 @@ export const CustomHandle = () => {
 						@{profile?.username}
 					</Text>
 				</View>
+				<TouchableOpacity onPress={() => navigation.navigate("Settings")}>
+					<Image
+						source={require("@/assets/icons/settings.svg")}
+						style={tw`w-6 h-6 rounded-full`}
+					/>
+				</TouchableOpacity>
 			</View>
 		</View>
 	);
