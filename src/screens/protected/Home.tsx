@@ -12,6 +12,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CustomMarker } from "@/components/map/CustomMarker";
 import { CustomBackdrop, CustomHandle } from "@/components/sheet";
 import { Button, Text } from "@/components/ui";
+import { useLocation } from "@/hooks/useLocation";
 import tw from "@/lib/tailwind";
 import { useProfileStore } from "@/stores/profileStore";
 
@@ -87,11 +88,35 @@ export default function Home() {
 		}
 	};
 
+	const { updateUserLocation } = useLocation();
+
+	const updateLocationInDatabase = (location: Location.LocationObject) => {
+		if (location) {
+			// Function to update user location in database
+			const { latitude, longitude } = location.coords;
+
+			const userId = profile?.id;
+
+			if (!userId) {
+				console.error("User ID not found. Unable to update location.");
+				return;
+			}
+
+			updateUserLocation(userId, latitude, longitude)
+				.then(() => {
+					console.log("User location updated successfully.");
+				})
+				.catch((error) => {
+					console.error("Error updating user location:", error);
+				});
+		}
+	};
+
 	const getCurrPositionAndAnimateMap = async () => {
 		try {
 			const location = await Location.getCurrentPositionAsync({});
 			setLocation(location);
-
+			updateLocationInDatabase(location);
 			handleMapAnimation(location);
 
 			initializeLocationWatcher();
