@@ -14,12 +14,12 @@ export default function Settings({ navigation }: SettingsProps) {
 	const { logout } = useAuth();
 
 	return (
-		<SafeAreaView style={tw`flex-1 px-4 bg-white`}>
+		<SafeAreaView style={tw`flex-1 bg-white`}>
 			<View
 				style={tw`flex flex-row items-center justify-center w-full py-[0.6875rem]`}
 			>
 				<Pressable
-					style={tw`absolute left-0`}
+					style={tw`absolute left-4`}
 					hitSlop={24}
 					onPress={() => {
 						navigation.goBack();
@@ -33,7 +33,7 @@ export default function Settings({ navigation }: SettingsProps) {
 			</View>
 			<ScrollView style={tw`flex-1 pt-6`} showsVerticalScrollIndicator={false}>
 				<Text
-					style={tw`text-content-secondary`}
+					style={tw`text-content-secondary px-4`}
 					variant="caption1"
 					weight="semibold"
 				>
@@ -88,7 +88,7 @@ export default function Settings({ navigation }: SettingsProps) {
 					/>
 				</TouchableOpacity>
 				<Text
-					style={tw`text-content-secondary mt-6`}
+					style={tw`text-content-secondary mt-6 px-4`}
 					variant="caption1"
 					weight="semibold"
 				>
