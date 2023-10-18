@@ -20,16 +20,19 @@ export const LocationProvider = ({ children }: any) => {
 		latitude: number,
 		longitude: number,
 	) => {
-		console.log("updateUserLocation function called with  Id:", userId);
 		const location = `POINT(${longitude} ${latitude})`;
 
 		try {
-
 			const { error } = await supabase
 				.from("profiles")
 				.update({ location })
 				.eq("id", userId);
-
+			// Potential database function call if we manage
+			// to handle coordinates formatting on the backend
+			// const { data } = await supabase.rpc("get_coordinates", {
+			// 	user_id: userId,
+			// });
+			// console.log("data:" + data);
 			if (error) {
 				throw error;
 			}
