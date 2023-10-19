@@ -237,7 +237,7 @@ export default function Settings({ navigation }: SettingsProps) {
 						source={
 							selectionIndex === 0
 								? require("@/assets/icons/x.svg")
-								: require("@/assets/icons/chevron-left-gray.svg")
+								: require("@/assets/icons/chevron-left-black.svg")
 						}
 					/>
 				</Pressable>
