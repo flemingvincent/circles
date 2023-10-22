@@ -1,6 +1,8 @@
+import { MaterialIcons } from "@expo/vector-icons";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Image } from "expo-image";
+import * as ImagePicker from "expo-image-picker";
 import { useRef, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import {
@@ -11,6 +13,7 @@ import {
 	Dimensions,
 	TextInput,
 	Keyboard,
+	ActivityIndicator,
 } from "react-native";
 import Animated, {
 	useAnimatedRef,
@@ -56,6 +59,10 @@ export default function Settings({ navigation }: SettingsProps) {
 	const [isPasswordVisible, setIsPasswordVisible] = useState<boolean>(false);
 	const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] =
 		useState<boolean>(false);
+
+	const defaultPic = require("@/assets/images/default-profile-pic.png");
+	const [profileImage, setProfileImage] = useState(defaultPic);
+	const [loadingImage, setLoadingImage] = useState(false);
 
 	const scrollRef = useAnimatedRef<ScrollView>();
 	const alertRef = useRef<any>(null);
@@ -221,6 +228,21 @@ export default function Settings({ navigation }: SettingsProps) {
 		scrollRef.current?.scrollTo({ x: 0 });
 	};
 
+	const pickImage = async () => {
+		setLoadingImage(true);
+
+		const result = await ImagePicker.launchImageLibraryAsync({
+			mediaTypes: ImagePicker.MediaTypeOptions.All,
+			allowsEditing: false,
+			aspect: [1, 1],
+			quality: 1,
+		});
+
+		setLoadingImage(false);
+		const profileImageUri = result?.assets?.[0]?.uri;
+		setProfileImage(profileImageUri || defaultPic);
+	};
+
 	return (
 		<SafeAreaView style={tw`flex-1 bg-white`}>
 			{/* Title and back button */}
@@ -377,11 +399,31 @@ export default function Settings({ navigation }: SettingsProps) {
 
 				{/* Profile Picture */}
 				<View
-					style={tw`flex flex-col justify-between w-[${SCREEN_WIDTH}px] px-10 mt-7 ${
+					style={tw`flex flex-col items-center justify-center w-[${SCREEN_WIDTH}px] px-10 mt-7 ${
 						selectionIndex === 4 ? "" : "hidden"
 					}`}
 				>
-					<Text>Profile Pic</Text>
+					<View style={tw`w-100 h-100 mb-30 flex items-center justify-center`}>
+						<Image style={tw`w-50 h-50 mb-30`} source={profileImage} />
+					</View>
+					<TouchableOpacity
+						style={tw`absolute w-20 h-20 top-60 left-50 rounded-full bg-white shadow-md flex items-center justify-center`}
+						onPress={() => pickImage()}
+						activeOpacity={0.9}
+					>
+						{loadingImage ? (
+							<ActivityIndicator color="black" />
+						) : (
+							<MaterialIcons name="edit" size={24} color="black" />
+						)}
+					</TouchableOpacity>
+					<Button
+						variant="secondary"
+						label="Save"
+						style={tw`bottom-0 absolute`}
+						onPress={() => console.log("Submit to supabase")}
+						loading={isSubmitting}
+					/>
 				</View>
 
 				{/* Passwords */}
