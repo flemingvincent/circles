@@ -1,4 +1,3 @@
-import { MaterialIcons } from "@expo/vector-icons";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Image } from "expo-image";
@@ -13,7 +12,8 @@ import {
 	Dimensions,
 	TextInput,
 	Keyboard,
-	ActivityIndicator,
+	KeyboardAvoidingView,
+	Platform,
 } from "react-native";
 import Animated, {
 	useAnimatedRef,
@@ -60,9 +60,8 @@ export default function Settings({ navigation }: SettingsProps) {
 	const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] =
 		useState<boolean>(false);
 
-	const defaultPic = require("@/assets/images/default-profile-pic.png");
+	const defaultPic = require("@/assets/icons/avatar.svg");
 	const [profileImage, setProfileImage] = useState(defaultPic);
-	const [loadingImage, setLoadingImage] = useState(false);
 
 	const scrollRef = useAnimatedRef<ScrollView>();
 	const alertRef = useRef<any>(null);
@@ -200,7 +199,6 @@ export default function Settings({ navigation }: SettingsProps) {
 		control,
 		trigger,
 		getValues,
-		handleSubmit,
 		setValue,
 		reset,
 		formState: { errors, isSubmitting },
@@ -229,8 +227,6 @@ export default function Settings({ navigation }: SettingsProps) {
 	};
 
 	const pickImage = async () => {
-		setLoadingImage(true);
-
 		const result = await ImagePicker.launchImageLibraryAsync({
 			mediaTypes: ImagePicker.MediaTypeOptions.All,
 			allowsEditing: false,
@@ -238,209 +234,207 @@ export default function Settings({ navigation }: SettingsProps) {
 			quality: 1,
 		});
 
-		setLoadingImage(false);
 		const profileImageUri = result?.assets?.[0]?.uri;
 		setProfileImage(profileImageUri || defaultPic);
 	};
 
 	return (
 		<SafeAreaView style={tw`flex-1 bg-white`}>
-			{/* Title and back button */}
-			<View
-				style={tw`flex flex-row items-center justify-center w-full py-[0.6875rem]`}
-			>
-				<Pressable
-					style={tw`absolute left-4`}
-					hitSlop={24}
-					onPress={handleScrollBackward}
-				>
-					<Image
-						style={tw`w-6 h-6`}
-						source={
-							selectionIndex === 0
-								? require("@/assets/icons/x.svg")
-								: require("@/assets/icons/chevron-left-black.svg")
-						}
-					/>
-				</Pressable>
-				<Text variant="body" weight="semibold">
-					{selectionOptions[selectionIndex]}
-				</Text>
-			</View>
-
-			{/* Two horizontally oriented screens */}
-			<Animated.ScrollView
-				ref={scrollRef as any}
-				onScroll={scrollHandler}
-				showsHorizontalScrollIndicator={false}
-				scrollEnabled={false}
-				scrollEventThrottle={8}
-				horizontal
-				pagingEnabled
+			<KeyboardAvoidingView
 				style={tw`flex-1`}
+				behavior={Platform.OS === "ios" ? "padding" : "height"}
 			>
-				{/* Screen One */}
-				<ScrollView
-					style={tw`flex-1 w-[${SCREEN_WIDTH}px] pt-6`}
-					showsVerticalScrollIndicator={false}
-					scrollEnabled={false}
-				>
-					<Text
-						style={tw`text-content-secondary px-4`}
-						variant="caption1"
-						weight="semibold"
-					>
-						ACCOUNT
-					</Text>
-					<TouchableOpacity
-						style={tw`flex flex-row justify-between w-full p-4 border-b border-b-border`}
-						onPress={() => {
-							// Set the index so we know to move horizontally and update the title.
-							setSelectionIndex(1);
-							// Set the username value of the form.
-							setValue("username", profile?.username!);
-							// Check the username availability right away.
-							updateUsernameAvailability();
-							// Finally, go to the screen.
-							handleScrollForward();
-						}}
-					>
-						<Text weight="semibold">Username</Text>
-						<Image
-							style={tw`w-6 h-6`}
-							source={require("@/assets/icons/chevron-right-gray.svg")}
-						/>
-					</TouchableOpacity>
-					<TouchableOpacity
-						style={tw`flex flex-row justify-between w-full p-4 border-b border-b-border`}
-						onPress={() => {
-							// Set the index so we know to move horizontally and update the title.
-							setSelectionIndex(2);
-							// Set the username value of the form.
-							setValue("email", profile?.email!);
-							// Check the username availability right away.
-							updateEmailAvailability();
-							// Finally, go to the screen.
-							handleScrollForward();
-						}}
-					>
-						<Text weight="semibold">Email</Text>
-						<Image
-							style={tw`w-6 h-6`}
-							source={require("@/assets/icons/chevron-right-gray.svg")}
-						/>
-					</TouchableOpacity>
-					<TouchableOpacity
-						style={tw`flex flex-row justify-between w-full p-4 border-b border-b-border`}
-						onPress={() => {
-							handleScrollForward();
-							setSelectionIndex(3);
-						}}
-					>
-						<Text weight="semibold">Password</Text>
-						<Image
-							style={tw`w-6 h-6`}
-							source={require("@/assets/icons/chevron-right-gray.svg")}
-						/>
-					</TouchableOpacity>
-					<TouchableOpacity
-						style={tw`flex flex-row justify-between w-full p-4 border-b border-b-border`}
-						onPress={() => {
-							handleScrollForward();
-							setSelectionIndex(4);
-						}}
-					>
-						<Text weight="semibold">Profile Picture</Text>
-						<Image
-							style={tw`w-6 h-6`}
-							source={require("@/assets/icons/chevron-right-gray.svg")}
-						/>
-					</TouchableOpacity>
-					<TouchableOpacity
-						style={tw`flex flex-row justify-between w-full p-4`}
-						onPress={() => {
-							logout();
-						}}
-					>
-						<Text weight="semibold">Logout</Text>
-						<Image
-							style={tw`w-6 h-6`}
-							source={require("@/assets/icons/logout-red.svg")}
-						/>
-					</TouchableOpacity>
-					<Text
-						style={tw`text-content-secondary mt-6 px-4`}
-						variant="caption1"
-						weight="semibold"
-					>
-						PERMISSIONS
-					</Text>
-					<TouchableOpacity
-						style={tw`flex flex-row justify-between w-full p-4 border-b border-b-border`}
-					>
-						<Text weight="semibold">Location</Text>
-						<Image
-							style={tw`w-6 h-6`}
-							source={require("@/assets/icons/ellipsis-vertical.svg")}
-						/>
-					</TouchableOpacity>
-					<TouchableOpacity
-						style={tw`flex flex-row justify-between w-full p-4`}
-					>
-						<Text weight="semibold">Notifications</Text>
-						<Image
-							style={tw`w-6 h-6`}
-							source={require("@/assets/icons/ellipsis-vertical.svg")}
-						/>
-					</TouchableOpacity>
-				</ScrollView>
-
-				{/* Screen Two. Technically, four screens, but only the selected one is shown */}
-
-				{/* Profile Picture */}
+				{/* Title and back button */}
 				<View
-					style={tw`flex flex-col items-center justify-center w-[${SCREEN_WIDTH}px] px-10 mt-7 ${
-						selectionIndex === 4 ? "" : "hidden"
-					}`}
+					style={tw`flex flex-row items-center justify-center w-full py-[0.6875rem]`}
 				>
-					<View style={tw`w-100 h-100 mb-30 flex items-center justify-center`}>
-						<Image style={tw`w-50 h-50 mb-30`} source={profileImage} />
-					</View>
-					<TouchableOpacity
-						style={tw`absolute w-20 h-20 top-60 left-50 rounded-full bg-white shadow-md flex items-center justify-center`}
-						onPress={() => pickImage()}
-						activeOpacity={0.9}
+					<Pressable
+						style={tw`absolute left-4`}
+						hitSlop={24}
+						onPress={handleScrollBackward}
 					>
-						{loadingImage ? (
-							<ActivityIndicator color="black" />
-						) : (
-							<MaterialIcons name="edit" size={24} color="black" />
-						)}
-					</TouchableOpacity>
-					<Button
-						variant="secondary"
-						label="Save"
-						style={tw`bottom-0 absolute`}
-						onPress={() => console.log("Submit to supabase")}
-						loading={isSubmitting}
-					/>
+						<Image
+							style={tw`w-6 h-6`}
+							source={
+								selectionIndex === 0
+									? require("@/assets/icons/x.svg")
+									: require("@/assets/icons/chevron-left-black.svg")
+							}
+						/>
+					</Pressable>
+					<Text variant="body" weight="semibold">
+						{selectionOptions[selectionIndex]}
+					</Text>
 				</View>
 
-				{/* Passwords */}
-				<View
-					style={tw`flex flex-col justify-between w-[${SCREEN_WIDTH}px] px-10 mt-7 ${
-						selectionIndex === 3 ? "" : "hidden"
-					}`}
+				{/* Two horizontally oriented screens */}
+				<Animated.ScrollView
+					ref={scrollRef as any}
+					onScroll={scrollHandler}
+					showsHorizontalScrollIndicator={false}
+					scrollEnabled={false}
+					scrollEventThrottle={8}
+					horizontal
+					pagingEnabled
+					style={tw`flex-1`}
 				>
-					<View>
-						<View style={tw`mb-10`}>
+					{/* Screen One */}
+					<View style={tw`flex-1 w-[${SCREEN_WIDTH}px] pt-6`}>
+						<Text
+							style={tw`text-content-secondary px-4`}
+							variant="caption1"
+							weight="semibold"
+						>
+							ACCOUNT
+						</Text>
+						<TouchableOpacity
+							style={tw`flex flex-row justify-between w-full p-4 border-b border-b-border`}
+							onPress={() => {
+								// Set the index so we know to move horizontally and update the title.
+								setSelectionIndex(1);
+								// Set the username value of the form.
+								setValue("username", profile?.username!);
+								// Check the username availability right away.
+								updateUsernameAvailability();
+								// Finally, go to the screen.
+								handleScrollForward();
+							}}
+						>
+							<Text weight="semibold">Username</Text>
+							<Image
+								style={tw`w-6 h-6`}
+								source={require("@/assets/icons/chevron-right-gray.svg")}
+							/>
+						</TouchableOpacity>
+						<TouchableOpacity
+							style={tw`flex flex-row justify-between w-full p-4 border-b border-b-border`}
+							onPress={() => {
+								// Set the index so we know to move horizontally and update the title.
+								setSelectionIndex(2);
+								// Set the username value of the form.
+								setValue("email", profile?.email!);
+								// Check the username availability right away.
+								updateEmailAvailability();
+								// Finally, go to the screen.
+								handleScrollForward();
+							}}
+						>
+							<Text weight="semibold">Email</Text>
+							<Image
+								style={tw`w-6 h-6`}
+								source={require("@/assets/icons/chevron-right-gray.svg")}
+							/>
+						</TouchableOpacity>
+						<TouchableOpacity
+							style={tw`flex flex-row justify-between w-full p-4 border-b border-b-border`}
+							onPress={() => {
+								handleScrollForward();
+								setSelectionIndex(3);
+							}}
+						>
+							<Text weight="semibold">Password</Text>
+							<Image
+								style={tw`w-6 h-6`}
+								source={require("@/assets/icons/chevron-right-gray.svg")}
+							/>
+						</TouchableOpacity>
+						<TouchableOpacity
+							style={tw`flex flex-row justify-between w-full p-4 border-b border-b-border`}
+							onPress={() => {
+								handleScrollForward();
+								setSelectionIndex(4);
+							}}
+						>
+							<Text weight="semibold">Profile Picture</Text>
+							<Image
+								style={tw`w-6 h-6`}
+								source={require("@/assets/icons/chevron-right-gray.svg")}
+							/>
+						</TouchableOpacity>
+						<TouchableOpacity
+							style={tw`flex flex-row justify-between w-full p-4`}
+							onPress={() => {
+								logout();
+							}}
+						>
+							<Text weight="semibold">Logout</Text>
+							<Image
+								style={tw`w-6 h-6`}
+								source={require("@/assets/icons/logout-red.svg")}
+							/>
+						</TouchableOpacity>
+						<Text
+							style={tw`text-content-secondary mt-6 px-4`}
+							variant="caption1"
+							weight="semibold"
+						>
+							PERMISSIONS
+						</Text>
+						<TouchableOpacity
+							style={tw`flex flex-row justify-between w-full p-4 border-b border-b-border`}
+						>
+							<Text weight="semibold">Location</Text>
+							<Image
+								style={tw`w-6 h-6`}
+								source={require("@/assets/icons/ellipsis-vertical.svg")}
+							/>
+						</TouchableOpacity>
+						<TouchableOpacity
+							style={tw`flex flex-row justify-between w-full p-4`}
+						>
+							<Text weight="semibold">Notifications</Text>
+							<Image
+								style={tw`w-6 h-6`}
+								source={require("@/assets/icons/ellipsis-vertical.svg")}
+							/>
+						</TouchableOpacity>
+					</View>
+
+					{/* Screen Two. Technically, four screens, but only the selected one is shown */}
+
+					{/* Profile Picture */}
+					<View
+						style={tw`flex items-center justify-center w-[${SCREEN_WIDTH}px] px-12 ${
+							selectionIndex === 4 ? "" : "hidden"
+						}`}
+					>
+						<View style={tw`w-[12.5rem] h-[12.5rem]`}>
+							<Image
+								style={tw`w-[12.5rem] h-[12.5rem]`}
+								source={profileImage}
+							/>
+							<Pressable
+								style={tw`absolute w-16 h-16 bottom-0 right-0 rounded-full bg-white shadow-md items-center justify-center`}
+								onPress={() => pickImage()}
+							>
+								<Image
+									style={tw`w-6 h-6`}
+									source={require("@/assets/icons/edit.svg")}
+								/>
+							</Pressable>
+						</View>
+						<Button
+							variant="secondary"
+							label="Save"
+							style={tw`bottom-4 absolute`}
+							onPress={() => console.log("Submit to supabase")}
+							loading={isSubmitting}
+						/>
+					</View>
+
+					{/* Passwords */}
+					<View
+						style={tw`w-[${SCREEN_WIDTH}px] px-12 pt-6 ${
+							selectionIndex === 3 ? "" : "hidden"
+						}`}
+					>
+						<View style={tw`mb-4`}>
 							<Controller
 								control={control}
 								name="password"
 								render={({ field: { onChange, value } }) => (
 									<Input
-										ref={textInputRef}
-										secureTextEntry={!isPasswordVisible}
+										placeholder="Password"
 										icon={
 											<Pressable
 												onPress={() => {
@@ -457,47 +451,13 @@ export default function Settings({ navigation }: SettingsProps) {
 												/>
 											</Pressable>
 										}
+										secureTextEntry={!isPasswordVisible}
+										description="Strong passwords consist of at least 10 characters and should include a combination of uppercase and lowercase letters, special characters, and numbers."
 										error={errors.password?.message}
-										placeholder="New Password"
 										value={value}
 										onChangeText={onChange}
-										onSubmitEditing={() => handleSubmit(onSubmit)()}
 										maxLength={64}
-									/>
-								)}
-							/>
-						</View>
-						<Controller
-							control={control}
-							name="confirmPassword"
-							render={({ field: { onChange, value } }) => (
-								<Input
-									ref={textInputRef}
-									secureTextEntry={!isConfirmPasswordVisible}
-									icon={
-										<Pressable
-											onPress={() => {
-												setIsConfirmPasswordVisible(!isConfirmPasswordVisible);
-											}}
-										>
-											<Image
-												source={
-													isPasswordVisible
-														? require("@/assets/icons/eye-close.svg")
-														: require("@/assets/icons/eye.svg")
-												}
-												style={tw`w-6 h-6`}
-											/>
-										</Pressable>
-									}
-									error={errors.confirmPassword?.message}
-									placeholder="Confirm New Password"
-									value={value}
-									onChangeText={onChange}
-									onSubmitEditing={() => handleSubmit(onSubmit)()}
-									maxLength={64}
-									indicator={
-										<View>
+										indicator={
 											<View style={tw`flex-row items-center gap-x-2 mt-6`}>
 												<Image
 													style={tw`w-6 h-6`}
@@ -518,6 +478,7 @@ export default function Settings({ navigation }: SettingsProps) {
 															: require("@/assets/icons/bar-red.svg")
 													}
 												/>
+
 												<Text
 													variant="subheadline"
 													weight="semibold"
@@ -526,71 +487,83 @@ export default function Settings({ navigation }: SettingsProps) {
 													Password Strength
 												</Text>
 											</View>
+										}
+									/>
+								)}
+							/>
+						</View>
+						<Controller
+							control={control}
+							name="confirmPassword"
+							render={({ field: { onChange, value } }) => (
+								<Input
+									placeholder="Confirm Password"
+									icon={
+										<Pressable
+											onPress={() => {
+												setIsConfirmPasswordVisible(!isConfirmPasswordVisible);
+											}}
+										>
+											<Image
+												source={
+													isConfirmPasswordVisible
+														? require("@/assets/icons/eye-close.svg")
+														: require("@/assets/icons/eye.svg")
+												}
+												style={tw`w-6 h-6`}
+											/>
+										</Pressable>
+									}
+									secureTextEntry={!isConfirmPasswordVisible}
+									description="In order to continue, re-enter your password exactly the same as before."
+									error={errors.confirmPassword?.message}
+									value={value}
+									onChangeText={onChange}
+									maxLength={64}
+									indicator={
+										<View style={tw`flex-row items-center gap-x-2 mt-6`}>
+											<Image
+												source={
+													// Check if either password or confirmPassword is undefined or empty
+													getValues("password") === undefined ||
+													getValues("password") === "" ||
+													getValues("confirmPassword") === undefined ||
+													getValues("confirmPassword") === ""
+														? require("@/assets/icons/circle-check.svg") // Show circle-check.svg
+														: getValues("password") ===
+														  getValues("confirmPassword")
+														? require("@/assets/icons/circle-check-green.svg") // Show circle-check-green.svg
+														: require("@/assets/icons/circle-check.svg")
+												}
+												style={tw`w-6 h-6`}
+											/>
 											<Text
-												variant="caption1"
+												variant="subheadline"
 												weight="semibold"
-												style={[tw`text-content-tertiary mt-6 mt-4`]}
+												style={tw`text-content-tertiary`}
 											>
-												Strong passwords consist of at least 10 characters and
-												should include a combination of uppercase and lowercase
-												letters, special characters, and numbers.
-											</Text>
-											<View style={tw`flex-row items-center gap-x-2 mt-6`}>
-												<Image
-													source={
-														// Check if either password or confirmPassword is undefined or empty
-														getValues("password") === undefined ||
-														getValues("password") === "" ||
-														getValues("confirmPassword") === undefined ||
-														getValues("confirmPassword") === ""
-															? require("@/assets/icons/circle-check.svg") // Show circle-check.svg
-															: getValues("password") ===
-															  getValues("confirmPassword")
-															? require("@/assets/icons/circle-check-green.svg") // Show circle-check-green.svg
-															: require("@/assets/icons/circle-check.svg")
-													}
-													style={tw`w-6 h-6`}
-												/>
-												<Text
-													variant="subheadline"
-													weight="semibold"
-													style={tw`text-content-tertiary`}
-												>
-													Passwords Match
-												</Text>
-											</View>
-											<Text
-												variant="caption1"
-												weight="semibold"
-												style={[tw`text-content-tertiary mt-6 mt-4`]}
-											>
-												In order to continue, re-enter your password exactly the
-												same as before.
+												Passwords Match
 											</Text>
 										</View>
 									}
 								/>
 							)}
 						/>
-					</View>
-					<View>
 						<Button
 							variant="secondary"
 							label="Save"
-							style={tw`mb-4`}
+							style={tw`absolute self-center bottom-4`}
 							onPress={onSubmit}
 							loading={isSubmitting}
 						/>
 					</View>
-				</View>
 
-				{/* Email */}
-				<View
-					style={tw`flex flex-col justify-between w-[${SCREEN_WIDTH}px] px-10 mt-7 ${
-						selectionIndex === 2 ? "" : "hidden"
-					}`}
-				>
-					<View>
+					{/* Email */}
+					<View
+						style={tw`w-[${SCREEN_WIDTH}px] px-12 pt-6 relative ${
+							selectionIndex === 2 ? "" : "hidden"
+						}`}
+					>
 						<Controller
 							control={control}
 							name="email"
@@ -632,23 +605,17 @@ export default function Settings({ navigation }: SettingsProps) {
 								/>
 							)}
 						/>
-					</View>
-					<View>
 						<Button
 							variant="secondary"
 							label="Save"
-							style={tw`mb-4`}
+							style={tw`absolute self-center bottom-4`}
 							onPress={onSubmit}
 							loading={isSubmitting}
 						/>
 					</View>
-				</View>
 
-				{/* Username */}
-				<View
-					style={tw`flex flex-col justify-between w-[${SCREEN_WIDTH}px] px-10 mt-7`}
-				>
-					<View>
+					{/* Username */}
+					<View style={tw`flex w-[${SCREEN_WIDTH}px] px-12 pt-6 relative`}>
 						<Controller
 							control={control}
 							name="username"
@@ -688,18 +655,16 @@ export default function Settings({ navigation }: SettingsProps) {
 								/>
 							)}
 						/>
-					</View>
-					<View>
 						<Button
 							variant="secondary"
 							label="Save"
-							style={tw`mb-4`}
+							style={tw`absolute self-center bottom-4`}
 							onPress={onSubmit}
 							loading={isSubmitting}
 						/>
 					</View>
-				</View>
-			</Animated.ScrollView>
+				</Animated.ScrollView>
+			</KeyboardAvoidingView>
 		</SafeAreaView>
 	);
 }
