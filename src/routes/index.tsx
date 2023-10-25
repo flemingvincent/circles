@@ -1,14 +1,16 @@
 import { NavigationContainer } from "@react-navigation/native";
 
-import { ProtectedStack } from "@/routes/protected";
-import { PublicStack } from "@/routes/public";
+import { ProtectedStack } from "./protected";
+import { PublicStack } from "./public";
+
+import { useAuth } from "@/hooks/useAuth";
 
 export function AppRoutes() {
+	const { user } = useAuth();
+
 	return (
 		<NavigationContainer>
-			{/* {isLoggedIn ? <ProtectedStack /> : <PublicStack />} */}
-			<PublicStack />
-			{/* <ProtectedStack /> */}
+			{user ? <ProtectedStack /> : <PublicStack />}
 		</NavigationContainer>
 	);
 }

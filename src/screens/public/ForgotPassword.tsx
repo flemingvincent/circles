@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Image } from "expo-image";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useRef, useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import {
 	Dimensions,
@@ -28,8 +28,10 @@ import { supabase } from "@/config/supabase";
 import { useAuth } from "@/hooks/useAuth";
 import tw from "@/lib/tailwind";
 import { PublicStackParamList } from "@/routes/public";
-
-type LoginProps = NativeStackScreenProps<PublicStackParamList, "Login">;
+type ForgotPasswordProps = NativeStackScreenProps<
+	PublicStackParamList,
+	"ForgotPassword"
+>;
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -56,15 +58,17 @@ const ScreenIndicator = ({
 	);
 };
 
-export function Login({ navigation }: LoginProps) {
+export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
+	const email = route.params.email;
 	const scrollRef = useAnimatedRef<ScrollView>();
 	const alertRef = useRef<any>(null);
 	const translateX = useSharedValue(0);
-	const { login } = useAuth();
+	const { forgotPassword } = useAuth();
 
 	// The following two variables and functions are used to automatically focus the inputs.
 	type TextInputRef = React.RefObject<TextInput>;
 	const textInputRefs: TextInputRef[] = [
+		useRef<TextInput>(null),
 		useRef<TextInput>(null),
 		useRef<TextInput>(null),
 	];
@@ -81,6 +85,8 @@ export function Login({ navigation }: LoginProps) {
 	};
 
 	const [isPasswordVisible, setIsPasswordVisible] = useState<boolean>(false);
+	const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] =
+		useState<boolean>(false);
 
 	const scrollHandler = useAnimatedScrollHandler({
 		onScroll: (event) => {
@@ -94,7 +100,7 @@ export function Login({ navigation }: LoginProps) {
 
 	const handleScrollForward = useCallback(() => {
 		if (activeIndex.value === 0) {
-			trigger("email").then((isValid) => {
+			trigger("code").then((isValid) => {
 				if (isValid) {
 					scrollRef.current?.scrollTo({
 						x: SCREEN_WIDTH * (activeIndex.value + 1),
@@ -107,6 +113,17 @@ export function Login({ navigation }: LoginProps) {
 		if (activeIndex.value === 1) {
 			trigger("password").then((isValid) => {
 				if (isValid) {
+					scrollRef.current?.scrollTo({
+						x: SCREEN_WIDTH * (activeIndex.value + 1),
+					});
+					openNextTextInput();
+				}
+			});
+		}
+
+		if (activeIndex.value === 2) {
+			trigger("confirmPassword").then((isValid) => {
+				if (isValid) {
 					handleSubmit(onSubmit)();
 				}
 			});
@@ -117,39 +134,56 @@ export function Login({ navigation }: LoginProps) {
 		if (activeIndex.value === 0) {
 			navigation.goBack();
 		}
+
 		// Focus the previous text input
 		openPrevTextInput();
+
 		scrollRef.current?.scrollTo({ x: SCREEN_WIDTH * (activeIndex.value - 1) });
 	}, []);
 
-	const formSchema = z.object({
-		email: z
-			.string({
-				required_error: "Oops! An email is required.",
-			})
-			.email("Oops! That's not an email."),
-		password: z.string({
-			required_error: "Oops! A password is required.",
-		}),
-	});
+	const formSchema = z
+		.object({
+			code: z
+				.string({
+					required_error: "Oops! A code is required.",
+				})
+				.regex(/^[0-9]+$/, "Oops! Only numbers allowed.")
+				.min(6, "Oops! 6 digits are required."),
+			password: z
+				.string({
+					required_error: "Oops! A password is required.",
+				})
+				.min(10, "Oops! Enter at least 10 characters.")
+				.regex(/^(?=.*[a-z])/, "Oops! Missing a lowercase letter.")
+				.regex(/^(?=.*[A-Z])/, "Oops! Missing an uppercase letter.")
+				.regex(/^(?=.*[0-9])/, "Oops! Missing a number.")
+				.regex(/^(?=.*[!@#$%^&*])/, "Oops! Missing a special character."),
+			confirmPassword: z.string({
+				required_error: "Oops! A password is required.",
+			}),
+		})
+		.refine((data) => data.password === data.confirmPassword, {
+			message: "Oops! Passwords don't match.",
+			path: ["confirmPassword"],
+		});
 
 	const {
 		control,
 		handleSubmit,
 		trigger,
-		formState: { errors, isSubmitting },
 		getValues,
+		formState: { errors, isSubmitting },
 	} = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
 	});
 
 	async function onSubmit(data: z.infer<typeof formSchema>) {
 		try {
-			const { email, password } = data;
+			const { code, password } = data;
 
-			await login(email, password);
+			await forgotPassword(email, code, password);
 		} catch (error) {
-			console.log("Supabase SignIn Error: ", error);
+			console.log("Supabase Reset Password Error: ", error);
 			alertRef.current?.showAlert({
 				title: "Oops!",
 				// @ts-ignore
@@ -159,10 +193,10 @@ export function Login({ navigation }: LoginProps) {
 		}
 	}
 
-	const rForgotPasswordStyle = useAnimatedStyle(() => {
+	const rResendCodeStyle = useAnimatedStyle(() => {
 		return {
 			opacity:
-				activeIndex.value === 1
+				activeIndex.value === 0
 					? withTiming(1, {
 							duration: 350,
 					  })
@@ -171,7 +205,7 @@ export function Login({ navigation }: LoginProps) {
 					  }),
 			transform: [
 				{
-					translateY: withTiming(activeIndex.value === 1 ? 0 : 36, {
+					translateY: withTiming(activeIndex.value === 0 ? 0 : 36, {
 						duration: 350,
 					}),
 				},
@@ -179,16 +213,20 @@ export function Login({ navigation }: LoginProps) {
 		};
 	});
 
-	const handleForgotPassword = async () => {
+	const handleResendForgetPassword = async () => {
 		try {
 			const { error: resetPasswordError } =
-				await supabase.auth.resetPasswordForEmail(getValues("email"));
+				await supabase.auth.resetPasswordForEmail(email);
 
 			if (resetPasswordError) {
+				console.log("Error");
 				throw resetPasswordError;
 			} else {
-				navigation.replace("ForgotPassword", {
-					email: getValues("email"),
+				console.log("Resending Email");
+				alertRef.current?.showAlert({
+					title: "Success!",
+					message: "Verification code sent.",
+					variant: "success",
 				});
 			}
 		} catch (error) {
@@ -201,6 +239,16 @@ export function Login({ navigation }: LoginProps) {
 			});
 		}
 	};
+
+	useEffect(() => {
+		setTimeout(() => {
+			alertRef.current?.showAlert({
+				title: "Success!",
+				message: "Verification code sent.",
+				variant: "success",
+			});
+		}, 500);
+	}, []);
 
 	return (
 		<SafeAreaView style={tw`flex-1 bg-white`}>
@@ -222,8 +270,8 @@ export function Login({ navigation }: LoginProps) {
 							style={tw`w-6 h-6`}
 						/>
 					</Pressable>
-					{/* Map through two indicators*/}
-					{[0, 1].map((index) => (
+					{/* Map through six indicators*/}
+					{[0, 1, 2].map((index) => (
 						<ScreenIndicator
 							key={index.toString()}
 							activeIndex={activeIndex}
@@ -242,31 +290,37 @@ export function Login({ navigation }: LoginProps) {
 					keyboardShouldPersistTaps="always"
 					style={tw`flex-1`}
 				>
-					{/* Email */}
+					{/* Code Verification */}
 					<View style={tw`w-[${SCREEN_WIDTH}px] px-12`}>
 						<Text variant="title1" weight="semibold" style={tw`mb-4`}>
-							Email
+							Verification
 						</Text>
 						<Text
 							variant="callout"
 							weight="semibold"
 							style={tw`text-content-secondary mb-6`}
 						>
-							Enter your email address.
+							Enter the six digit code sent to{" "}
+							<Text
+								variant="callout"
+								weight="semibold"
+								style={tw`text-content-primary`}
+							>
+								{email}
+							</Text>
 						</Text>
 						<Controller
 							control={control}
-							name="email"
+							name="code"
 							render={({ field: { onChange, value } }) => (
 								<Input
 									ref={textInputRefs[0]}
-									placeholder="Email"
-									description="Enter the email address associated with your account."
-									error={errors.email?.message}
-									autoComplete="email"
-									keyboardType="email-address"
+									placeholder="Six Digit Code"
+									error={errors.code?.message}
 									value={value}
 									onChangeText={onChange}
+									maxLength={6}
+									keyboardType="number-pad"
 								/>
 							)}
 						/>
@@ -274,14 +328,14 @@ export function Login({ navigation }: LoginProps) {
 					{/* Password */}
 					<View style={tw`w-[${SCREEN_WIDTH}px] px-12`}>
 						<Text variant="title1" weight="semibold" style={tw`mb-4`}>
-							Enter Password
+							New Password
 						</Text>
 						<Text
 							variant="callout"
 							weight="semibold"
 							style={tw`text-content-secondary mb-6`}
 						>
-							Enter your password.
+							Choose a strong password to secure your account.
 						</Text>
 						<Controller
 							control={control}
@@ -295,7 +349,6 @@ export function Login({ navigation }: LoginProps) {
 											onPress={() => {
 												setIsPasswordVisible(!isPasswordVisible);
 											}}
-											hitSlop={24}
 										>
 											<Image
 												source={
@@ -308,11 +361,113 @@ export function Login({ navigation }: LoginProps) {
 										</Pressable>
 									}
 									secureTextEntry={!isPasswordVisible}
-									description="Enter the password associated with your account."
+									description="Strong passwords consist of at least 10 characters and should include a combination of uppercase and lowercase letters, special characters, and numbers."
 									error={errors.password?.message}
 									value={value}
 									onChangeText={onChange}
 									maxLength={64}
+									indicator={
+										<View style={tw`flex-row items-center gap-x-2 mt-6`}>
+											<Image
+												style={tw`w-6 h-6`}
+												source={
+													getValues("password") === undefined ||
+													getValues("password") === ""
+														? require("@/assets/icons/bar.svg")
+														: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z\d]).{10,}$/.test(
+																getValues("password"),
+														  )
+														? require("@/assets/icons/bar-green.svg") // Strong password
+														: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)|(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z\d]).{10,}$/.test(
+																getValues("password"),
+														  )
+														? require("@/assets/icons/bar-yellow.svg") // Moderate password
+														: /^.{8,}$/.test(getValues("password"))
+														? require("@/assets/icons/bar-red.svg") // Weak password
+														: require("@/assets/icons/bar-red.svg")
+												}
+											/>
+
+											<Text
+												variant="subheadline"
+												weight="semibold"
+												style={tw`text-content-tertiary`}
+											>
+												Password Strength
+											</Text>
+										</View>
+									}
+								/>
+							)}
+						/>
+					</View>
+					{/* Confirm Password */}
+					<View style={tw`w-[${SCREEN_WIDTH}px] px-12`}>
+						<Text variant="title1" weight="semibold" style={tw`mb-4`}>
+							Confirm Password
+						</Text>
+						<Text
+							variant="callout"
+							weight="semibold"
+							style={tw`text-content-secondary mb-6`}
+						>
+							Enter your new password again to successfuly reset it.
+						</Text>
+						<Controller
+							control={control}
+							name="confirmPassword"
+							render={({ field: { onChange, value } }) => (
+								<Input
+									ref={textInputRefs[2]}
+									placeholder="Confirm Password"
+									icon={
+										<Pressable
+											onPress={() => {
+												setIsConfirmPasswordVisible(!isConfirmPasswordVisible);
+											}}
+										>
+											<Image
+												source={
+													isConfirmPasswordVisible
+														? require("@/assets/icons/eye-close.svg")
+														: require("@/assets/icons/eye.svg")
+												}
+												style={tw`w-6 h-6`}
+											/>
+										</Pressable>
+									}
+									secureTextEntry={!isConfirmPasswordVisible}
+									description="In order to continue, re-enter your password exactly the same as before."
+									error={errors.confirmPassword?.message}
+									value={value}
+									onChangeText={onChange}
+									maxLength={64}
+									indicator={
+										<View style={tw`flex-row items-center gap-x-2 mt-6`}>
+											<Image
+												source={
+													// Check if either password or confirmPassword is undefined or empty
+													getValues("password") === undefined ||
+													getValues("password") === "" ||
+													getValues("confirmPassword") === undefined ||
+													getValues("confirmPassword") === ""
+														? require("@/assets/icons/circle-check.svg") // Show circle-check.svg
+														: getValues("password") ===
+														  getValues("confirmPassword")
+														? require("@/assets/icons/circle-check-green.svg") // Show circle-check-green.svg
+														: require("@/assets/icons/circle-check.svg")
+												}
+												style={tw`w-6 h-6`}
+											/>
+											<Text
+												variant="subheadline"
+												weight="semibold"
+												style={tw`text-content-tertiary`}
+											>
+												Passwords Match
+											</Text>
+										</View>
+									}
 								/>
 							)}
 						/>
@@ -324,12 +479,15 @@ export function Login({ navigation }: LoginProps) {
 						weight="semibold"
 						style={[
 							tw`text-content-secondary mb-4 text-center`,
-							rForgotPasswordStyle,
+							rResendCodeStyle,
 						]}
-						onPress={handleForgotPassword}
+						onPress={() => {
+							handleResendForgetPassword();
+						}}
 					>
-						Forgot Password?
+						Didn't receive a code?
 					</Text>
+
 					<Button
 						variant="primary"
 						label="Continue"
