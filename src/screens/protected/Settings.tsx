@@ -43,7 +43,7 @@ const selectionOptions = [
 ];
 
 export default function Settings({ navigation }: SettingsProps) {
-	const { logout } = useAuth();
+	const { updateUsername,updateUserEmail,updateUserPassword, logout } = useAuth();
 	const [selectionIndex, setSelectionIndex] = useState(0);
 	const { profile }: ProfileState = useProfileStore();
 	const { checkUsernameAvailability, checkEmailAvailability } = useAuth();
@@ -81,6 +81,7 @@ export default function Settings({ navigation }: SettingsProps) {
 			checkUsernameAvailability(getValues("username")).then(
 				(isUsernameAvailable) => {
 					setIsUsernameAvailable(isUsernameAvailable);
+					updateUsername(getValues("username"));
 				},
 			);
 		}
@@ -104,6 +105,7 @@ export default function Settings({ navigation }: SettingsProps) {
 				if (isValid) {
 					try {
 						updateUsernameAvailability();
+
 					} catch (error) {
 						// @ts-ignore
 						console.log("Supabase Create Account Error: ", error);
@@ -121,6 +123,7 @@ export default function Settings({ navigation }: SettingsProps) {
 				if (isValid) {
 					try {
 						updateEmailAvailability();
+						updateUserEmail(getValues("email"));
 					} catch (error) {
 						// @ts-ignore
 						console.log("Supabase Create Account Error: ", error);
@@ -138,6 +141,7 @@ export default function Settings({ navigation }: SettingsProps) {
 				if (isValid1) {
 					trigger("confirmPassword").then((isValid2) => {
 						if (isValid2) {
+							updateUserPassword(getValues("password"));
 							// TODO (change user password here)
 						}
 					});
