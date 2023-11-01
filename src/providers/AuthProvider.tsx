@@ -215,9 +215,29 @@ export const AuthProvider = ({ children }: any) => {
 
 	const updateUsername = async (newUsername: string) => {
 		try {
-			
-			const { data: { user } } = await supabase.auth.getUser()
-			const userId = user?.id;
+			const { data: { user } } = await supabase.auth.getUser();
+			if (!user) {
+				throw new Error('User not authenticated');
+			}
+			const userId = user.id;
+				
+			const { data: dbData, error: dbError } = await supabase
+				.from("profiles")
+				.select("*")
+				.eq("id", userId);
+
+			if (dbError) {
+				throw dbError;
+			} else {
+				setProfile({
+					id: userId,
+					email: dbData![0].email,
+					username: newUsername,
+					first_name: dbData![0].first_name,
+					last_name: dbData![0].last_name,
+				});
+			}
+
 			const { error: profileError } = await supabase
 					.from('profiles')
 					.update({ username: newUsername })
@@ -226,7 +246,8 @@ export const AuthProvider = ({ children }: any) => {
 			if (profileError) {
 					throw profileError;
 			}
-			
+
+			console.log('Username updated successfully');
 		} catch (error) {
 			throw error;
 		}
@@ -243,6 +264,9 @@ export const AuthProvider = ({ children }: any) => {
 			}
 	
 			const userId = user.id;
+
+
+			
 	
 			// Update email in the authentication system
 			const { error: updateEmailAuthError } = await supabase.auth.updateUser({ email: newUserEmail });
@@ -252,19 +276,38 @@ export const AuthProvider = ({ children }: any) => {
 				throw updateEmailAuthError;
 			}
 			else{
+				// Update email in the 'profiles' table
+				const { data: dbData, error: dbError } = await supabase
+				.from("profiles")
+				.select("*")
+				.eq("id", userId);
+
+				if (dbError) {
+					throw dbError;
+				} else {
+					setProfile({
+						id: userId,
+						email: newUserEmail,
+						username: dbData![0].username,
+						first_name: dbData![0].first_name,
+						last_name: dbData![0].last_name,
+					});
+				}
+
+
+				const { error: profileError } = await supabase
+					.from('profiles')
+					.update({ email: newUserEmail })
+					.eq('id', userId);
+
+				if (profileError) {
+					console.error('Error updating email in profiles table:', profileError);
+					throw profileError;
+				}
 				console.log('Email updated successfully')
 			}
 	
-			// Update email in the 'profiles' table
-			const { error: profileError } = await supabase
-				.from('profiles')
-				.update({ email: newUserEmail })
-				.eq('id', userId);
-	
-			if (profileError) {
-				console.error('Error updating email in profiles table:', profileError);
-				throw profileError;
-			}
+			
 	
 			// Successful email update
 		} catch (error) {
