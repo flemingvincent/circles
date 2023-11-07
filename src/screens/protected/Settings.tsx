@@ -27,12 +27,15 @@ import * as z from "zod";
 import { Text, Input, Button } from "@/components/ui";
 import { useAuth } from "@/hooks/useAuth";
 import tw from "@/lib/tailwind";
-import { PublicStackParamList } from "@/routes/public";
+import { ProtectedStackParamList } from "@/routes/protected";
 import { useProfileStore, ProfileState } from "@/stores/profileStore";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
-type SettingsProps = NativeStackScreenProps<PublicStackParamList, "Settings">;
+type SettingsProps = NativeStackScreenProps<
+	ProtectedStackParamList,
+	"Settings"
+>;
 
 const selectionOptions = [
 	"Settings",

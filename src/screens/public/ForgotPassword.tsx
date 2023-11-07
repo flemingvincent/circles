@@ -104,26 +104,24 @@ export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
 			trigger("code").then((isValid) => {
 				if (isValid) {
 					try {
-						verifyOtp(email, getValues("code")).then(
-							(verifiedIDResult) => {
-								if(verifiedIDResult != ""){
-									// success	
-									verifiedID = verifiedIDResult!;
+						verifyOtp(email, getValues("code")).then((verifiedIDResult) => {
+							if (verifiedIDResult !== "") {
+								// success
+								verifiedID = verifiedIDResult!;
 
-									scrollRef.current?.scrollTo({
-										x: SCREEN_WIDTH * (activeIndex.value + 1),
-									});
-									openNextTextInput();	
-								} else {
-									alertRef.current?.showAlert({
-										title: "Oops!",
-										// @ts-ignore
-										message: "Invalid Code",
-										variant: "error",
-									});
-								}
-							},
-						);
+								scrollRef.current?.scrollTo({
+									x: SCREEN_WIDTH * (activeIndex.value + 1),
+								});
+								openNextTextInput();
+							} else {
+								alertRef.current?.showAlert({
+									title: "Oops!",
+									// @ts-ignore
+									message: "Invalid Code",
+									variant: "error",
+								});
+							}
+						});
 					} catch (error) {
 						// @ts-ignore
 						console.log("Supabase Create Account Error: ", error);
@@ -133,7 +131,7 @@ export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
 							message: error.message + ".",
 							variant: "error",
 						});
-					}					
+					}
 				}
 			});
 		}
@@ -207,7 +205,7 @@ export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
 
 	async function onSubmit(data: z.infer<typeof formSchema>) {
 		try {
-			const { code, password } = data;
+			const { password } = data;
 
 			await forgotPassword(email, verifiedID, password);
 		} catch (error) {
@@ -258,7 +256,7 @@ export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
 				});
 
 				// reset
-				verifiedID = ""
+				verifiedID = "";
 			}
 		} catch (error) {
 			console.log("Supabase forgot password error: ", error);

@@ -18,7 +18,7 @@ type AuthContextProps = {
 		lastName: string,
 	) => Promise<void>;
 	login: (email: string, password: string) => Promise<void>;
-	verifyOtp: (email: string, token: string) => Promise<string|undefined>;
+	verifyOtp: (email: string, token: string) => Promise<string | undefined>;
 	forgotPassword: (
 		email: string,
 		id: string,
@@ -158,7 +158,7 @@ export const AuthProvider = ({ children }: any) => {
 		}
 	};
 
-	const verifyOtp = async (email: string,	token: string) => {	   
+	const verifyOtp = async (email: string, token: string) => {
 		try {
 			const { data: verifyData, error: verifyError } =
 				await supabase.auth.verifyOtp({
@@ -172,7 +172,7 @@ export const AuthProvider = ({ children }: any) => {
 			} else {
 				return Promise.resolve(verifyData.user?.id);
 			}
-		} catch (error) {					  
+		} catch (error) {
 			throw error;
 		}
 	};
@@ -191,8 +191,8 @@ export const AuthProvider = ({ children }: any) => {
 			} else {
 				const { data: dbData, error: dbError } = await supabase
 					.from("profiles")
-					.select("*")					
-					.eq("id", id)						
+					.select("*")
+					.eq("id", id)
 					.eq("email", email);
 
 				if (dbError) {
@@ -206,7 +206,7 @@ export const AuthProvider = ({ children }: any) => {
 						last_name: dbData![0].last_name,
 					});
 				}
-			}			
+			}
 		} catch (error) {
 			throw error;
 		}
@@ -242,7 +242,7 @@ export const AuthProvider = ({ children }: any) => {
 				checkEmailAvailability,
 				createAccount,
 				login,
-				verifyOtp,	
+				verifyOtp,
 				forgotPassword,
 				logout,
 			}}

@@ -255,7 +255,13 @@ export default function Home({ navigation }: HomeProps) {
 					</View>
 					<View style={tw`px-12 gap-y-4`}>
 						<Button variant="primary" label="Create a Circle" />
-						<Button variant="outline" label="Join a Circle" />
+						<Button
+							variant="outline"
+							label="Join a Circle"
+							onPress={() => {
+								navigation.navigate("Join");
+							}}
+						/>
 					</View>
 				</BottomSheetView>
 			</BottomSheet>
