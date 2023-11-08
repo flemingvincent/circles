@@ -23,36 +23,13 @@ import Animated, {
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as z from "zod";
 
-import { Alert, Button, Input, Text } from "@/components/ui";
+import { Alert, Button, Input, Text, ScreenIndicator } from "@/components/ui";
 import tw from "@/lib/tailwind";
 import { ProtectedStackParamList } from "@/routes/protected";
 
 type JoinProps = NativeStackScreenProps<ProtectedStackParamList, "Join">;
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
-
-const ScreenIndicator = ({
-	activeIndex,
-	index,
-}: {
-	activeIndex: Animated.SharedValue<number>;
-	index: number;
-}) => {
-	const rIndicatorStyle = useAnimatedStyle(() => {
-		return {
-			width: withTiming(activeIndex.value === index ? 32 : 16),
-			backgroundColor: withTiming(
-				activeIndex.value === index ? "#4DAFFF" : "#D9D9D9",
-			),
-		};
-	});
-
-	return (
-		<Animated.View
-			style={[tw`h-[0.1875rem] bg-red-500 rounded-full`, rIndicatorStyle]}
-		/>
-	);
-};
 
 export default function Create({ navigation }: JoinProps) {
 	const scrollRef = useAnimatedRef<ScrollView>();
