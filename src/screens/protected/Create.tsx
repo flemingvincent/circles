@@ -82,7 +82,6 @@ export default function Create({ navigation }: JoinProps) {
 	});
 
 	const handleScrollForward = useCallback(() => {
-		console.log("SCROLLING FORWARD")
 		if (activeIndex.value === 0) {
 			trigger("name").then((isValid) => {
 				if (isValid) {
@@ -126,7 +125,6 @@ export default function Create({ navigation }: JoinProps) {
 	const onSubmit = async (data: z.infer<typeof formSchema>) => {
 		try {
 			const { name } = data;
-			console.log("name", name)
 			// TODO: Create circle on the backend using this name
 			handleScrollForward();
 		} catch (error) {
