@@ -1,8 +1,8 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
+import Create from "@/screens/protected/Create";
 import Home from "@/screens/protected/Home";
 import Join from "@/screens/protected/Join";
-import Create from "@/screens/protected/Create";
 import Settings from "@/screens/protected/Settings";
 
 export type ProtectedStackParamList = {

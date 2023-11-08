@@ -28,8 +28,8 @@ export default function Join({ navigation }: JoinProps) {
 	const {
 		control,
 		handleSubmit,
-		trigger,
-		getValues,
+		// trigger,
+		// getValues,
 		formState: { errors, isSubmitting },
 	} = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
@@ -38,6 +38,7 @@ export default function Join({ navigation }: JoinProps) {
 	const onSubmit = async (data: z.infer<typeof formSchema>) => {
 		try {
 			const { code } = data;
+			console.log(code);
 		} catch (error) {
 			console.log(error);
 			alertRef.current?.showAlert({

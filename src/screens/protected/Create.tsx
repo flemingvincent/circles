@@ -1,9 +1,17 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Image } from "expo-image";
-import { useRef, useCallback, useState } from "react";
+import { useRef, useCallback } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { Dimensions, KeyboardAvoidingView, Platform, Pressable, View, ScrollView, TextInput } from "react-native";
+import {
+	Dimensions,
+	KeyboardAvoidingView,
+	Platform,
+	Pressable,
+	View,
+	ScrollView,
+	TextInput,
+} from "react-native";
 import Animated, {
 	useAnimatedRef,
 	useAnimatedScrollHandler,
@@ -20,8 +28,6 @@ import tw from "@/lib/tailwind";
 import { ProtectedStackParamList } from "@/routes/protected";
 
 type JoinProps = NativeStackScreenProps<ProtectedStackParamList, "Join">;
-
-const dummyProfilesForSearching = ["John", "Nick", "Cat"]
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -116,7 +122,6 @@ export default function Create({ navigation }: JoinProps) {
 		control,
 		handleSubmit,
 		trigger,
-		getValues,
 		formState: { errors, isSubmitting },
 	} = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
@@ -126,6 +131,7 @@ export default function Create({ navigation }: JoinProps) {
 		try {
 			const { name } = data;
 			// TODO: Create circle on the backend using this name
+			console.log(name);
 			handleScrollForward();
 		} catch (error) {
 			console.log(error);
@@ -247,8 +253,7 @@ export default function Create({ navigation }: JoinProps) {
 								]}
 								// error={errors.name?.message}
 								// onChangeText={onChange(onSubmit)}
-							>
-							</TextInput>
+							/>
 						</View>
 						<View style={tw`px-12`}>
 							<Button
