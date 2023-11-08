@@ -254,7 +254,10 @@ export default function Home({ navigation }: HomeProps) {
 						</Text>
 					</View>
 					<View style={tw`px-12 gap-y-4`}>
-						<Button variant="primary" label="Create a Circle" />
+						<Button variant="primary" label="Create a Circle"
+							onPress={() => {
+								navigation.navigate("Create");
+							}}/>
 						<Button
 							variant="outline"
 							label="Join a Circle"
