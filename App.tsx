@@ -10,6 +10,7 @@ import { useDeviceContext } from "twrnc";
 import tw from "@/lib/tailwind";
 import { AuthProvider } from "@/providers/AuthProvider";
 import { LocationProvider } from "@/providers/LocationProvider";
+import { CircleProvider } from "@/providers/CircleProvider";
 import { AppRoutes } from "@/routes";
 
 SplashScreen.preventAutoHideAsync();
@@ -41,14 +42,16 @@ export default function App() {
 	return (
 		<AuthProvider>
 			<LocationProvider>
-				<GestureHandlerRootView style={tw`flex-1`}>
-					<BottomSheetModalProvider>
-						<SafeAreaProvider>
-							<StatusBar style="dark" />
-							<AppRoutes />
-						</SafeAreaProvider>
-					</BottomSheetModalProvider>
-				</GestureHandlerRootView>
+				<CircleProvider>	
+					<GestureHandlerRootView style={tw`flex-1`}>
+						<BottomSheetModalProvider>
+							<SafeAreaProvider>
+								<StatusBar style="dark" />
+								<AppRoutes />
+							</SafeAreaProvider>
+						</BottomSheetModalProvider>
+					</GestureHandlerRootView>
+					</CircleProvider>
 			</LocationProvider>
 		</AuthProvider>
 	);
