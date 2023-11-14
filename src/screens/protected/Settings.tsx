@@ -43,7 +43,8 @@ const selectionOptions = [
 ];
 
 export default function Settings({ navigation }: SettingsProps) {
-	const { updateUsername,updateUserEmail,updateUserPassword, logout } = useAuth();
+	const { updateUsername, updateUserEmail, updateUserPassword, logout } =
+		useAuth();
 	const [selectionIndex, setSelectionIndex] = useState(0);
 	const { profile }: ProfileState = useProfileStore();
 	const { checkUsernameAvailability, checkEmailAvailability } = useAuth();
@@ -105,7 +106,6 @@ export default function Settings({ navigation }: SettingsProps) {
 				if (isValid) {
 					try {
 						updateUsernameAvailability();
-
 					} catch (error) {
 						// @ts-ignore
 						console.log("Supabase Create Account Error: ", error);

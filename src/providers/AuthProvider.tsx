@@ -23,15 +23,9 @@ type AuthContextProps = {
 		token: string,
 		password: string,
 	) => Promise<void>;
-	updateUsername: (
-		newUsername:string,
-	) => Promise<void>;
-	updateUserEmail: (
-		newUserEmail:string,
-	) => Promise<void>;
-	updateUserPassword: (
-		newPassword:string,
-	) => Promise<void>;
+	updateUsername: (newUsername: string) => Promise<void>;
+	updateUserEmail: (newUserEmail: string) => Promise<void>;
+	updateUserPassword: (newPassword: string) => Promise<void>;
 	logout: () => Promise<void>;
 };
 
@@ -44,9 +38,9 @@ export const AuthContext = createContext<AuthContextProps>({
 	createAccount: async () => {},
 	login: async () => {},
 	forgotPassword: async () => {},
-	updateUsername:async () => {},
-	updateUserEmail:async () => {},
-	updateUserPassword:async () => {},
+	updateUsername: async () => {},
+	updateUserEmail: async () => {},
+	updateUserPassword: async () => {},
 	logout: async () => {},
 });
 
@@ -215,12 +209,14 @@ export const AuthProvider = ({ children }: any) => {
 
 	const updateUsername = async (newUsername: string) => {
 		try {
-			const { data: { user } } = await supabase.auth.getUser();
+			const {
+				data: { user },
+			} = await supabase.auth.getUser();
 			if (!user) {
-				throw new Error('User not authenticated');
+				throw new Error("User not authenticated");
 			}
 			const userId = user.id;
-				
+
 			const { data: dbData, error: dbError } = await supabase
 				.from("profiles")
 				.select("*")
@@ -239,48 +235,50 @@ export const AuthProvider = ({ children }: any) => {
 			}
 
 			const { error: profileError } = await supabase
-					.from('profiles')
-					.update({ username: newUsername })
-					.eq('id', userId);
-				
+				.from("profiles")
+				.update({ username: newUsername })
+				.eq("id", userId);
+
 			if (profileError) {
-					throw profileError;
+				throw profileError;
 			}
 
-			console.log('Username updated successfully');
+			console.log("Username updated successfully");
 		} catch (error) {
 			throw error;
 		}
 	};
 
 	const updateUserEmail = async (newUserEmail: string) => {
-			
 		try {
 			// Get the current user
-			const { data: { user } } = await supabase.auth.getUser();
-	
+			const {
+				data: { user },
+			} = await supabase.auth.getUser();
+
 			if (!user) {
-				throw new Error('User not authenticated');
+				throw new Error("User not authenticated");
 			}
-	
+
 			const userId = user.id;
 
-
-			
-	
 			// Update email in the authentication system
-			const { error: updateEmailAuthError } = await supabase.auth.updateUser({ email: newUserEmail });
-			
+			const { error: updateEmailAuthError } = await supabase.auth.updateUser({
+				email: newUserEmail,
+			});
+
 			if (updateEmailAuthError) {
-				console.error('Error updating email in authentication system:', updateEmailAuthError);
+				console.error(
+					"Error updating email in authentication system:",
+					updateEmailAuthError,
+				);
 				throw updateEmailAuthError;
-			}
-			else{
+			} else {
 				// Update email in the 'profiles' table
 				const { data: dbData, error: dbError } = await supabase
-				.from("profiles")
-				.select("*")
-				.eq("id", userId);
+					.from("profiles")
+					.select("*")
+					.eq("id", userId);
 
 				if (dbError) {
 					throw dbError;
@@ -294,42 +292,45 @@ export const AuthProvider = ({ children }: any) => {
 					});
 				}
 
-
 				const { error: profileError } = await supabase
-					.from('profiles')
+					.from("profiles")
 					.update({ email: newUserEmail })
-					.eq('id', userId);
+					.eq("id", userId);
 
 				if (profileError) {
-					console.error('Error updating email in profiles table:', profileError);
+					console.error(
+						"Error updating email in profiles table:",
+						profileError,
+					);
 					throw profileError;
 				}
-				console.log('Email updated successfully')
+				console.log("Email updated successfully");
 			}
-	
-			
-	
+
 			// Successful email update
 		} catch (error) {
-			console.error('Error in updateUserEmail:', error);
+			console.error("Error in updateUserEmail:", error);
 			throw error;
 		}
 	};
 	const updateUserPassword = async (newPassword: string) => {
-			
 		try {
 			// Get the current user
-			const { data: { user } } = await supabase.auth.getUser();
-			
+			const {
+				data: { user },
+			} = await supabase.auth.getUser();
+
 			if (!user) {
-				throw new Error('User not authenticated');
+				throw new Error("User not authenticated");
 			}
-	
+
 			const userId = user.id;
-	
+
 			// Update email in the authentication system
-			const { error: updateError } = await supabase.auth.updateUser({ password:newPassword });
-			
+			const { error: updateError } = await supabase.auth.updateUser({
+				password: newPassword,
+			});
+
 			if (updateError) {
 				throw updateError;
 			} else {
@@ -349,20 +350,17 @@ export const AuthProvider = ({ children }: any) => {
 						last_name: dbData![0].last_name,
 					});
 				}
-				console.log('Password updated successfully');
+				console.log("Password updated successfully");
 			}
-	
+
 			// Update email in the 'profiles' table
-			
-	
+
 			// Successful email update
 		} catch (error) {
-			console.error('Error in updateUserEmail:', error);
+			console.error("Error in updateUserEmail:", error);
 			throw error;
 		}
 	};
-	
-	
 
 	const logout = async () => {
 		try {
