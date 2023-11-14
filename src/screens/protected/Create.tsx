@@ -109,17 +109,15 @@ export default function Create({ navigation }: JoinProps) {
 		resolver: zodResolver(formSchema),
 	});
 
-	async function onSubmit (data: z.infer<typeof formSchema>) {
+	async function onSubmit(data: z.infer<typeof formSchema>) {
 		try {
 			const { name } = data;
 			// TODO: Create circle on the backend using this name
 			console.log("circle name: ", name);
 			console.log("profile id: ", profile!.id);
-			await createCircle(name, profile!.id).then(
-				(invitationCode) => {
-					console.log("New Invitation Code: ", invitationCode);
-				},
-			);
+			await createCircle(name, profile!.id).then((invitationCode) => {
+				console.log("New Invitation Code: ", invitationCode);
+			});
 
 			handleScrollForward();
 		} catch (error) {
@@ -131,7 +129,7 @@ export default function Create({ navigation }: JoinProps) {
 				variant: "error",
 			});
 		}
-	};
+	}
 
 	return (
 		<SafeAreaView style={tw`flex-1 bg-white`}>
@@ -213,7 +211,7 @@ export default function Create({ navigation }: JoinProps) {
 								label="Create"
 								style={tw`mb-4`}
 								loading={isSubmitting}
-								onPress={handleSubmit(onSubmit)}								
+								onPress={handleSubmit(onSubmit)}
 							/>
 						</View>
 					</View>
