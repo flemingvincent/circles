@@ -24,14 +24,18 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import * as z from "zod";
 
 import { Alert, Button, Input, Text, ScreenIndicator } from "@/components/ui";
+import { useCircle } from "@/hooks/useCircle";
 import tw from "@/lib/tailwind";
 import { ProtectedStackParamList } from "@/routes/protected";
+import { useProfileStore, ProfileState } from "@/stores/profileStore";
 
 type JoinProps = NativeStackScreenProps<ProtectedStackParamList, "Join">;
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 export default function Create({ navigation }: JoinProps) {
+	const { createCircle } = useCircle();
+	const { profile }: ProfileState = useProfileStore();
 	const scrollRef = useAnimatedRef<ScrollView>();
 	const alertRef = useRef<any>(null);
 	const translateX = useSharedValue(0);
@@ -97,6 +101,7 @@ export default function Create({ navigation }: JoinProps) {
 
 	const {
 		control,
+		getValues,
 		handleSubmit,
 		trigger,
 		formState: { errors, isSubmitting },
@@ -104,11 +109,16 @@ export default function Create({ navigation }: JoinProps) {
 		resolver: zodResolver(formSchema),
 	});
 
-	const onSubmit = async (data: z.infer<typeof formSchema>) => {
+	async function onSubmit(data: z.infer<typeof formSchema>) {
 		try {
 			const { name } = data;
 			// TODO: Create circle on the backend using this name
-			console.log("Logging to prevent lint errors", name);
+			console.log("circle name: ", name);
+			console.log("profile id: ", profile!.id);
+			await createCircle(name, profile!.id).then((invitationCode) => {
+				console.log("New Invitation Code: ", invitationCode);
+			});
+
 			handleScrollForward();
 		} catch (error) {
 			console.log(error);
@@ -119,7 +129,7 @@ export default function Create({ navigation }: JoinProps) {
 				variant: "error",
 			});
 		}
-	};
+	}
 
 	return (
 		<SafeAreaView style={tw`flex-1 bg-white`}>
@@ -198,7 +208,7 @@ export default function Create({ navigation }: JoinProps) {
 						<View style={tw`px-12`}>
 							<Button
 								variant="primary"
-								label="Continue"
+								label="Create"
 								style={tw`mb-4`}
 								loading={isSubmitting}
 								onPress={handleSubmit(onSubmit)}
@@ -233,7 +243,7 @@ export default function Create({ navigation }: JoinProps) {
 						<View style={tw`px-12`}>
 							<Button
 								variant="primary"
-								label="Create"
+								label="Send Invite"
 								style={tw`mb-4`}
 								loading={isSubmitting}
 								onPress={() => console.log("Adding a friend")}
