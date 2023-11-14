@@ -5,8 +5,9 @@ import BottomSheet, {
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Image } from "expo-image";
 import * as Location from "expo-location";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { SetStateAction, useEffect, useMemo, useRef, useState } from "react";
 import { Platform, View, Linking, AppState } from "react-native";
+import { SelectList, SelectListProps } from "react-native-dropdown-select-list";
 import MapView from "react-native-maps";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -154,10 +155,35 @@ export default function Home({ navigation }: HomeProps) {
 		});
 	};
 
+	type Circle = {
+		key: string;
+		value: string;
+		disabled?: boolean;
+	};
+	const [userCircles, setUserCircles] = useState<Circle[]>([]);
+	const getUsersCircles = async () => {
+		// TODO: Get user's circles from db.
+		setUserCircles([
+			{ key: "1", value: "Your Circles", disabled: true },
+			{ key: "2", value: "Family" },
+			{ key: "3", value: "OS Study Group" },
+			{ key: "4", value: "DSA Study Group" },
+			{ key: "5", value: "BBall" },
+			{ key: "6", value: "Buddies" },
+		]);
+	};
+	const [selectedCircle, setSelectedCircle] =
+		useState<SetStateAction<string>>("");
+	useEffect(() => {
+		// TODO: Get all users in the newly selected circle from db.
+		console.log("Getting new circle");
+	}, [selectedCircle]);
+
 	useEffect(() => {
 		(async () => {
 			checkPermissionsAndUpdateScreen();
 			initializeAppStateListener();
+			getUsersCircles();
 		})();
 	}, []);
 
@@ -176,6 +202,24 @@ export default function Home({ navigation }: HomeProps) {
 					/>
 				)}
 			</MapView>
+			{/* Filter By Circle */}
+			<View
+				style={tw`absolute top-15 self-center w-50`}
+				onTouchStart={() => "style={tw`absolute top-15 self-center w-50`}"}
+			>
+				<SelectList
+					search={false}
+					boxStyles={tw`bg-white`}
+					dropdownStyles={tw`bg-white`}
+					fontFamily="OpenRundeSemibold"
+					setSelected={(selection: SetStateAction<string>) =>
+						setSelectedCircle(selection)
+					}
+					data={userCircles}
+					placeholder="Select a Circle"
+					save="value"
+				/>
+			</View>
 			{/* Permissions Modal */}
 			<BottomSheetModal
 				ref={permissionsModalRef}
