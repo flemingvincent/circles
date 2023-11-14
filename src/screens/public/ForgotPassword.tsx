@@ -23,7 +23,7 @@ import Animated, {
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as z from "zod";
 
-import { Button, Input, Text, Alert } from "@/components/ui";
+import { Button, Input, Text, Alert, ScreenIndicator } from "@/components/ui";
 import { supabase } from "@/config/supabase";
 import { useAuth } from "@/hooks/useAuth";
 import tw from "@/lib/tailwind";
@@ -34,29 +34,6 @@ type ForgotPasswordProps = NativeStackScreenProps<
 >;
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
-
-const ScreenIndicator = ({
-	activeIndex,
-	index,
-}: {
-	activeIndex: Animated.SharedValue<number>;
-	index: number;
-}) => {
-	const rIndicatorStyle = useAnimatedStyle(() => {
-		return {
-			width: withTiming(activeIndex.value === index ? 32 : 16),
-			backgroundColor: withTiming(
-				activeIndex.value === index ? "#4DAFFF" : "#D9D9D9",
-			),
-		};
-	});
-
-	return (
-		<Animated.View
-			style={[tw`h-[0.1875rem] bg-red-500 rounded-full`, rIndicatorStyle]}
-		/>
-	);
-};
 
 export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
 	const email = route.params.email;
