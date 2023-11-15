@@ -330,22 +330,33 @@ export default function Settings({ navigation }: SettingsProps) {
 				if (updateError) {
 					console.error("Error updating profile picture:", uploadError.message);
 				} else {
+					const userId = user.id;
+
+					const { data } = await supabase.storage
+						.from('avatars')
+  						.createSignedUrl(`user-${user?.id}.jpg`, 31536000)
+					console.log(profileImage)
+					const { error: profileError } = await supabase
+						.from("profiles")
+						.update({ avatar_url: data?.signedUrl })
+						.eq("id", userId);
+					if (profileError) {
+						throw profileError;
+					}
 					console.log(
-						"Profile picture updated successfully:",
+						"Profile picture updaded successfully:",
 						JSON.stringify(profileImage),
 					);
 				}
 			} else {
 				const userId = user.id;
-				const newAvatar_url = `user-${user?.id}.jpg`;
-
-				// TODO: Get URL of the new profile picture from Avatars bucket
-				// Update the avatar_url in the "profiles" table
-				// Update the avatar_url in the profileStore
-
+				
+				const { data } = await supabase.storage
+					.from('avatars')
+  					.createSignedUrl(`user-${user?.id}.jpg`, 31536000)
 				const { error: profileError } = await supabase
 					.from("profiles")
-					.update({ avatar_url: newAvatar_url })
+					.update({ avatar_url: data?.signedUrl })
 					.eq("id", userId);
 
 				if (profileError) {
