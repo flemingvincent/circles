@@ -83,11 +83,25 @@ export default function Settings({ navigation }: SettingsProps) {
 			checkUsernameAvailability(getValues("username")).then(
 				(isUsernameAvailable) => {
 					setIsUsernameAvailable(isUsernameAvailable);
+				},
+			);
+		}
+	}
+	async function updateUsernameCP() {
+		// For simplicity and so the form looks pleasing off the bat,
+		// the username availability is green if the username hasn't changed.
+		if (getValues("username") === profile?.username) {
+			setIsUsernameAvailable(true);
+		} else {
+			checkUsernameAvailability(getValues("username")).then(
+				(isUsernameAvailable) => {
+					setIsUsernameAvailable(isUsernameAvailable);
 					updateUsername(getValues("username"));
 				},
 			);
 		}
 	}
+
 
 	async function updateEmailAvailability() {
 		// For simplicity and so the form looks pleasing off the bat,
@@ -97,6 +111,19 @@ export default function Settings({ navigation }: SettingsProps) {
 		} else {
 			checkEmailAvailability(getValues("email")).then((isEmailAvailable) => {
 				setIsEmailAvailable(isEmailAvailable);
+			});
+		}
+	}
+
+	async function updateEmailCP() {
+		// For simplicity and so the form looks pleasing off the bat,
+		// the email availability is green if the email hasn't changed.
+		if (getValues("email") === profile?.email) {
+			setIsEmailAvailable(true);
+		} else {
+			checkEmailAvailability(getValues("email")).then((isEmailAvailable) => {
+				setIsEmailAvailable(isEmailAvailable);
+				updateUserEmail(getValues("email"));
 			});
 		}
 	}
@@ -124,7 +151,6 @@ export default function Settings({ navigation }: SettingsProps) {
 				if (isValid) {
 					try {
 						updateEmailAvailability();
-						updateUserEmail(getValues("email"));
 					} catch (error) {
 						// @ts-ignore
 						console.log("Supabase Create Account Error: ", error);
@@ -665,7 +691,7 @@ export default function Settings({ navigation }: SettingsProps) {
 							variant="secondary"
 							label="Save"
 							style={tw`absolute self-center bottom-4`}
-							onPress={onSubmit}
+							onPress={updateEmailCP}
 							loading={isSubmitting}
 						/>
 					</View>
@@ -715,7 +741,7 @@ export default function Settings({ navigation }: SettingsProps) {
 							variant="secondary"
 							label="Save"
 							style={tw`absolute self-center bottom-4`}
-							onPress={onSubmit}
+							onPress={updateUsernameCP}
 							loading={isSubmitting}
 						/>
 					</View>
