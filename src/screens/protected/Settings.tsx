@@ -25,11 +25,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import * as z from "zod";
 
 import { Text, Input, Button } from "@/components/ui";
+import { supabase } from "@/config/supabase";
 import { useAuth } from "@/hooks/useAuth";
 import tw from "@/lib/tailwind";
 import { PublicStackParamList } from "@/routes/public";
 import { useProfileStore, ProfileState } from "@/stores/profileStore";
-import { supabase } from "@/config/supabase";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -50,7 +50,6 @@ export default function Settings({ navigation }: SettingsProps) {
 	const { profile }: ProfileState = useProfileStore();
 	const { checkUsernameAvailability, checkEmailAvailability } = useAuth();
 	const textInputRef = useRef<TextInput>(null);
-	
 
 	const [isUsernameAvailable, setIsUsernameAvailable] = useState<
 		boolean | null
@@ -101,7 +100,6 @@ export default function Settings({ navigation }: SettingsProps) {
 			);
 		}
 	}
-
 
 	async function updateEmailAvailability() {
 		// For simplicity and so the form looks pleasing off the bat,
@@ -258,7 +256,7 @@ export default function Settings({ navigation }: SettingsProps) {
 	};
 	const pickImage = async () => {
 		try {
-		  	const result = await ImagePicker.launchImageLibraryAsync({
+			const result = await ImagePicker.launchImageLibraryAsync({
 				mediaTypes: ImagePicker.MediaTypeOptions.Images,
 				allowsEditing: true,
 				aspect: [1, 1],
@@ -269,53 +267,60 @@ export default function Settings({ navigation }: SettingsProps) {
 				setProfileImage(profileImageUri || defaultPic);
 			}
 		} catch (error) {
-			console.error('Error picking image:', error);
-		  	throw error; // Rethrow the error to handle it elsewhere if needed
+			console.error("Error picking image:", error);
+			throw error; // Rethrow the error to handle it elsewhere if needed
 		}
 	};
-	  
+
 	const updateAvatar = async () => {
 		try {
-			const { data: { user } } = await supabase.auth.getUser();
+			const {
+				data: { user },
+			} = await supabase.auth.getUser();
 			if (!user) {
-				throw new Error('User not authenticated');
+				throw new Error("User not authenticated");
 			}
-	
+
 			// Upload the new profile picture to the "avatars" bucket
-			const { data, error: uploadError } = await supabase.storage
-			  .from('avatars')
-		      .upload(`user-${user?.id}.jpg`, profileImage, {
-			  cacheControl: 'public, max-age=31536000', // Optional: Set cache control headers
-		  	});
-	  
+			const { error: uploadError } = await supabase.storage
+				.from("avatars")
+				.upload(`user-${user?.id}.jpg`, profileImage, {
+					cacheControl: "public, max-age=31536000", // Optional: Set cache control headers
+				});
+
 			if (uploadError) {
-				const { data, error: updateError } = await supabase.storage
-			  	  .from('avatars')
-		          .update(`user-${user?.id}.jpg`, profileImage, {
-			      cacheControl: 'public, max-age=31536000', // Optional: Set cache control headers
-		  		});
-				if(updateError){
-		  			console.error('Error updating profile picture:', uploadError.message);
+				const { error: updateError } = await supabase.storage
+					.from("avatars")
+					.update(`user-${user?.id}.jpg`, profileImage, {
+						cacheControl: "public, max-age=31536000", // Optional: Set cache control headers
+					});
+				if (updateError) {
+					console.error("Error updating profile picture:", uploadError.message);
 				} else {
-					console.log('Profile picture updated successfully:', JSON.stringify(profileImage));
-			  	}
+					console.log(
+						"Profile picture updated successfully:",
+						JSON.stringify(profileImage),
+					);
+				}
 			} else {
 				const userId = user.id;
 				const newAvatar_url = `user-${user?.id}.jpg`;
 				const { error: profileError } = await supabase
-					.from('profiles')
-					.update({ avatar_url: newAvatar_url})
-					.eq('id', userId);
-				
+					.from("profiles")
+					.update({ avatar_url: newAvatar_url })
+					.eq("id", userId);
+
 				if (profileError) {
 					throw profileError;
 				}
-		  		console.log('Profile picture uploaded successfully:', JSON.stringify(profileImage));
+				console.log(
+					"Profile picture uploaded successfully:",
+					JSON.stringify(profileImage),
+				);
 			}
-			
 		} catch (error) {
-		  console.error('Error updating profile picture:', error);
-		  throw error; 
+			console.error("Error updating profile picture:", error);
+			throw error;
 		}
 	};
 
@@ -392,9 +397,9 @@ export default function Settings({ navigation }: SettingsProps) {
 							onPress={() => {
 								// Set the index so we know to move horizontally and update the title.
 								setSelectionIndex(2);
-								// Set the username value of the form.
+								// Set the email value of the form.
 								setValue("email", profile?.email!);
-								// Check the username availability right away.
+								// Check the email availability right away.
 								updateEmailAvailability();
 								// Finally, go to the screen.
 								handleScrollForward();
@@ -529,7 +534,7 @@ export default function Settings({ navigation }: SettingsProps) {
 															? require("@/assets/icons/eye-close.svg")
 															: require("@/assets/icons/eye.svg")
 													}
-													style={tw`w-6 h-6`}
+													style={tw`w-6 h-6 rounded-full`}
 												/>
 											</Pressable>
 										}
