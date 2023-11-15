@@ -29,6 +29,7 @@ import { useAuth } from "@/hooks/useAuth";
 import tw from "@/lib/tailwind";
 import { PublicStackParamList } from "@/routes/public";
 import { useProfileStore, ProfileState } from "@/stores/profileStore";
+import { supabase } from "@/config/supabase";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -47,8 +48,8 @@ export default function Settings({ navigation }: SettingsProps) {
 	const [selectionIndex, setSelectionIndex] = useState(0);
 	const { profile }: ProfileState = useProfileStore();
 	const { checkUsernameAvailability, checkEmailAvailability } = useAuth();
-
 	const textInputRef = useRef<TextInput>(null);
+	
 
 	const [isUsernameAvailable, setIsUsernameAvailable] = useState<
 		boolean | null
@@ -229,17 +230,68 @@ export default function Settings({ navigation }: SettingsProps) {
 		reset();
 		scrollRef.current?.scrollTo({ x: 0 });
 	};
-
 	const pickImage = async () => {
-		const result = await ImagePicker.launchImageLibraryAsync({
-			mediaTypes: ImagePicker.MediaTypeOptions.All,
-			allowsEditing: false,
-			aspect: [1, 1],
-			quality: 1,
-		});
-
-		const profileImageUri = result?.assets?.[0]?.uri;
-		setProfileImage(profileImageUri || defaultPic);
+		try {
+		  	const result = await ImagePicker.launchImageLibraryAsync({
+				mediaTypes: ImagePicker.MediaTypeOptions.Images,
+				allowsEditing: true,
+				aspect: [1, 1],
+				quality: 1,
+			});
+			if (!result.canceled) {
+				const profileImageUri = result.assets[0].uri;
+				setProfileImage(profileImageUri || defaultPic);
+			}
+		} catch (error) {
+			console.error('Error picking image:', error);
+		  	throw error; // Rethrow the error to handle it elsewhere if needed
+		}
+	};
+	  
+	const updateAvatar = async () => {
+		try {
+			const { data: { user } } = await supabase.auth.getUser();
+			if (!user) {
+				throw new Error('User not authenticated');
+			}
+			console.log('111111');
+	
+			// Upload the new profile picture to the "avatars" bucket
+			const { data, error: uploadError } = await supabase.storage
+			  .from('avatars')
+		      .upload(`user-${user?.id}.jpg`, profileImage, {
+			  cacheControl: 'public, max-age=31536000', // Optional: Set cache control headers
+		  	});
+	  
+			if (uploadError) {
+				const { data, error: updateError } = await supabase.storage
+			  	  .from('avatars')
+		          .update(`user-${user?.id}.jpg`, profileImage, {
+			      cacheControl: 'public, max-age=31536000', // Optional: Set cache control headers
+		  		});
+				if(updateError){
+		  			console.error('Error updating profile picture:', uploadError.message);
+				} else {
+					console.log('Profile picture updated successfully:', JSON.stringify(profileImage));
+			  	}
+			} else {
+				const userId = user.id;
+				const newAvatar_url = `user-${user?.id}.jpg`;
+				const { error: profileError } = await supabase
+					.from('profiles')
+					.update({ avatar_url: newAvatar_url})
+					.eq('id', userId);
+				
+				if (profileError) {
+					throw profileError;
+				}
+		  		console.log('Profile picture uploaded successfully:', JSON.stringify(profileImage));
+			}
+			
+		} catch (error) {
+		  console.error('Error updating profile picture:', error);
+		  throw error; 
+		}
 	};
 
 	return (
@@ -404,7 +456,8 @@ export default function Settings({ navigation }: SettingsProps) {
 					>
 						<View style={tw`w-[12.5rem] h-[12.5rem]`}>
 							<Image
-								style={tw`w-[12.5rem] h-[12.5rem]`}
+								// style={tw`w-[12.5rem] h-[12.5rem]`}
+								style={tw`w-full h-full rounded-full overflow-hidden`}
 								source={profileImage}
 							/>
 							<Pressable
@@ -421,7 +474,7 @@ export default function Settings({ navigation }: SettingsProps) {
 							variant="secondary"
 							label="Save"
 							style={tw`bottom-4 absolute`}
-							onPress={() => console.log("Submit to supabase")}
+							onPress={() => updateAvatar()}
 							loading={isSubmitting}
 						/>
 					</View>
