@@ -47,7 +47,7 @@ export default function Settings({ navigation }: SettingsProps) {
 	const { updateUsername, updateUserEmail, updateUserPassword, logout } =
 		useAuth();
 	const [selectionIndex, setSelectionIndex] = useState(0);
-	const { profile }: ProfileState = useProfileStore();
+	const { profile, setProfile }: ProfileState = useProfileStore();
 	const { checkUsernameAvailability, checkEmailAvailability } = useAuth();
 	const textInputRef = useRef<TextInput>(null);
 
@@ -333,9 +333,9 @@ export default function Settings({ navigation }: SettingsProps) {
 					const userId = user.id;
 
 					const { data } = await supabase.storage
-						.from('avatars')
-  						.createSignedUrl(`user-${user?.id}.jpg`, 31536000)
-					console.log(profileImage)
+						.from("avatars")
+						.createSignedUrl(`user-${user?.id}.jpg`, 31536000);
+					console.log(profileImage);
 					const { error: profileError } = await supabase
 						.from("profiles")
 						.update({ avatar_url: data?.signedUrl })
@@ -343,17 +343,35 @@ export default function Settings({ navigation }: SettingsProps) {
 					if (profileError) {
 						throw profileError;
 					}
+
+					setProfile({
+						id: profile!.id,
+						email: profile!.email,
+						username: profile!.username,
+						first_name: profile!.first_name,
+						last_name: profile!.last_name,
+						avatar_url: data?.signedUrl,
+					});
+
 					console.log(
-						"Profile picture updaded successfully:",
+						"Profile picture updated successfully:",
 						JSON.stringify(profileImage),
 					);
+
+					alertRef.current?.showAlert({
+						title: "Success!",
+						message: "Your profile picture has been updated.",
+						variant: "success",
+					});
+
+					handleScrollBackward();
 				}
 			} else {
 				const userId = user.id;
-				
+
 				const { data } = await supabase.storage
-					.from('avatars')
-  					.createSignedUrl(`user-${user?.id}.jpg`, 31536000)
+					.from("avatars")
+					.createSignedUrl(`user-${user?.id}.jpg`, 31536000);
 				const { error: profileError } = await supabase
 					.from("profiles")
 					.update({ avatar_url: data?.signedUrl })
@@ -362,10 +380,28 @@ export default function Settings({ navigation }: SettingsProps) {
 				if (profileError) {
 					throw profileError;
 				}
+
+				setProfile({
+					id: profile!.id,
+					email: profile!.email,
+					username: profile!.username,
+					first_name: profile!.first_name,
+					last_name: profile!.last_name,
+					avatar_url: data?.signedUrl,
+				});
+
 				console.log(
 					"Profile picture uploaded successfully:",
 					JSON.stringify(profileImage),
 				);
+
+				alertRef.current?.showAlert({
+					title: "Success!",
+					message: "Your profile picture has been uploaded.",
+					variant: "success",
+				});
+
+				handleScrollBackward();
 			}
 		} catch (error) {
 			console.error("Error updating profile picture:", error);
@@ -538,7 +574,13 @@ export default function Settings({ navigation }: SettingsProps) {
 							<Image
 								// style={tw`w-[12.5rem] h-[12.5rem]`}
 								style={tw`w-full h-full rounded-full overflow-hidden`}
-								source={profileImage}
+								source={
+									profileImage?.uri
+										? profileImage
+										: profile?.avatar_url
+										? { uri: profile?.avatar_url }
+										: require("@/assets/icons/avatar.svg")
+								}
 							/>
 							<Pressable
 								style={tw`absolute w-16 h-16 bottom-0 right-0 rounded-full bg-white shadow-md items-center justify-center`}
