@@ -15,10 +15,8 @@ import {
 import Animated, {
 	useAnimatedRef,
 	useAnimatedScrollHandler,
-	useAnimatedStyle,
 	useDerivedValue,
 	useSharedValue,
-	withTiming,
 } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as z from "zod";
@@ -101,7 +99,6 @@ export default function Create({ navigation }: JoinProps) {
 
 	const {
 		control,
-		getValues,
 		handleSubmit,
 		trigger,
 		formState: { errors, isSubmitting },

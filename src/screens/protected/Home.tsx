@@ -7,7 +7,7 @@ import { Image } from "expo-image";
 import * as Location from "expo-location";
 import { SetStateAction, useEffect, useMemo, useRef, useState } from "react";
 import { Platform, View, Linking, AppState } from "react-native";
-import { SelectList, SelectListProps } from "react-native-dropdown-select-list";
+import { SelectList } from "react-native-dropdown-select-list";
 import MapView from "react-native-maps";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -164,12 +164,11 @@ export default function Home({ navigation }: HomeProps) {
 	const getUsersCircles = async () => {
 		// TODO: Get user's circles from db.
 		setUserCircles([
-			{ key: "1", value: "Your Circles", disabled: true },
-			{ key: "2", value: "Family" },
-			{ key: "3", value: "OS Study Group" },
-			{ key: "4", value: "DSA Study Group" },
-			{ key: "5", value: "BBall" },
-			{ key: "6", value: "Buddies" },
+			{ key: "1", value: "Family" },
+			{ key: "2", value: "OS Study Group" },
+			{ key: "3", value: "DSA Study Group" },
+			{ key: "4", value: "BBall" },
+			{ key: "5", value: "Buddies" },
 		]);
 	};
 	const [selectedCircle, setSelectedCircle] =
@@ -204,13 +203,13 @@ export default function Home({ navigation }: HomeProps) {
 			</MapView>
 			{/* Filter By Circle */}
 			<View
-				style={tw`absolute top-15 self-center w-50`}
-				onTouchStart={() => "style={tw`absolute top-15 self-center w-50`}"}
+				style={tw`absolute top-15 self-center`}
+				onTouchStart={() => "style={tw`absolute top-15 self-center`}"}
 			>
 				<SelectList
 					search={false}
-					boxStyles={tw`bg-white`}
-					dropdownStyles={tw`bg-white`}
+					boxStyles={tw`bg-white border-0 rounded-full shadow-lg items-center w-50`}
+					dropdownStyles={tw`bg-white bg-white border-[1.5px] border-border w-full shadow-lg`}
 					fontFamily="OpenRundeSemibold"
 					setSelected={(selection: SetStateAction<string>) =>
 						setSelectedCircle(selection)
