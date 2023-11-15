@@ -187,24 +187,25 @@ export const AuthProvider = ({ children }: any) => {
 
 	const forgotPassword = async (
 		email: string,
-		id: string,
+		token: string,
 		password: string,
 	) => {
 		try {
-			const { error: updateError } = await supabase.auth.updateUser({
-				password,
-			});
-			if (updateError) {
-				throw updateError;
-			} else {
-				const { data: dbData, error: dbError } = await supabase
-					.from("profiles")
-					.select("*")
-					.eq("id", id)
-					.eq("email", email);
+			const { data: verifyData, error: verifyError } =
+				await supabase.auth.verifyOtp({
+					email,
+					token,
+					type: "recovery",
+				});
 
-				if (dbError) {
-					throw dbError;
+			if (verifyError) {
+				throw verifyError;
+			} else {
+				const { error: updateError } = await supabase.auth.updateUser({
+					password,
+				});
+				if (updateError) {
+					throw updateError;
 				} else {
 					const { data: dbData, error: dbError } = await supabase
 						.from("profiles")
