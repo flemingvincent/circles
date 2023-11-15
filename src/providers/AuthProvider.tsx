@@ -126,6 +126,7 @@ export const AuthProvider = ({ children }: any) => {
 					username,
 					first_name: firstName,
 					last_name: lastName,
+					avatar_url: null,
 				});
 			}
 		} catch (error) {
@@ -155,6 +156,7 @@ export const AuthProvider = ({ children }: any) => {
 					username: dbData![0].username,
 					first_name: dbData![0].first_name,
 					last_name: dbData![0].last_name,
+					avatar_url: dbData![0].avatar_url,
 				});
 			}
 		} catch (error) {
@@ -198,6 +200,7 @@ export const AuthProvider = ({ children }: any) => {
 							username: dbData![0].username,
 							first_name: dbData![0].first_name,
 							last_name: dbData![0].last_name,
+							avatar_url: dbData![0].avatar_url,
 						});
 					}
 				}
@@ -231,6 +234,7 @@ export const AuthProvider = ({ children }: any) => {
 					username: newUsername,
 					first_name: dbData![0].first_name,
 					last_name: dbData![0].last_name,
+					avatar_url: dbData![0].avatar_url,
 				});
 			}
 
@@ -289,6 +293,7 @@ export const AuthProvider = ({ children }: any) => {
 						username: dbData![0].username,
 						first_name: dbData![0].first_name,
 						last_name: dbData![0].last_name,
+						avatar_url: dbData![0].avatar_url,
 					});
 				}
 
@@ -348,6 +353,7 @@ export const AuthProvider = ({ children }: any) => {
 						username: dbData![0].username,
 						first_name: dbData![0].first_name,
 						last_name: dbData![0].last_name,
+						avatar_url: dbData![0].avatar_url,
 					});
 				}
 				console.log("Password updated successfully");

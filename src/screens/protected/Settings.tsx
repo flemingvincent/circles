@@ -296,7 +296,7 @@ export default function Settings({ navigation }: SettingsProps) {
 			});
 			if (!result.canceled) {
 				const profileImageUri = result.assets[0].uri;
-				const imageSource = {uri: profileImageUri};
+				const imageSource = { uri: profileImageUri };
 				setProfileImage(imageSource || defaultPic);
 			}
 		} catch (error) {
@@ -318,14 +318,14 @@ export default function Settings({ navigation }: SettingsProps) {
 			const { error: uploadError } = await supabase.storage
 				.from("avatars")
 				.upload(`user-${user?.id}.jpg`, profileImage, {
-					contentType:'image/jpeg' // Optional: Set cache control headers
+					contentType: "image/jpeg", // Optional: Set cache control headers
 				});
 
 			if (uploadError) {
 				const { error: updateError } = await supabase.storage
 					.from("avatars")
 					.update(`user-${user?.id}.jpg`, profileImage, {
-						contentType:'image/jpeg' // Optional: Set cache control headers
+						contentType: "image/jpeg", // Optional: Set cache control headers
 					});
 				if (updateError) {
 					console.error("Error updating profile picture:", uploadError.message);
@@ -338,6 +338,11 @@ export default function Settings({ navigation }: SettingsProps) {
 			} else {
 				const userId = user.id;
 				const newAvatar_url = `user-${user?.id}.jpg`;
+
+				// TODO: Get URL of the new profile picture from Avatars bucket
+				// Update the avatar_url in the "profiles" table
+				// Update the avatar_url in the profileStore
+
 				const { error: profileError } = await supabase
 					.from("profiles")
 					.update({ avatar_url: newAvatar_url })
