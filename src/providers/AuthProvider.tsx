@@ -24,6 +24,9 @@ type AuthContextProps = {
 		id: string,
 		password: string,
 	) => Promise<void>;
+	updateUsername: (newUsername: string) => Promise<void>;
+	updateUserEmail: (newUserEmail: string) => Promise<void>;
+	updateUserPassword: (newPassword: string) => Promise<void>;
 	logout: () => Promise<void>;
 };
 
@@ -37,6 +40,9 @@ export const AuthContext = createContext<AuthContextProps>({
 	login: async () => {},
 	verifyOtp: async () => "",
 	forgotPassword: async () => {},
+	updateUsername: async () => {},
+	updateUserEmail: async () => {},
+	updateUserPassword: async () => {},
 	logout: async () => {},
 });
 
@@ -122,6 +128,7 @@ export const AuthProvider = ({ children }: any) => {
 					username,
 					first_name: firstName,
 					last_name: lastName,
+					avatar_url: null,
 				});
 			}
 		} catch (error) {
@@ -151,6 +158,7 @@ export const AuthProvider = ({ children }: any) => {
 					username: dbData![0].username,
 					first_name: dbData![0].first_name,
 					last_name: dbData![0].last_name,
+					avatar_url: dbData![0].avatar_url,
 				});
 			}
 		} catch (error) {
@@ -198,16 +206,184 @@ export const AuthProvider = ({ children }: any) => {
 				if (dbError) {
 					throw dbError;
 				} else {
+					const { data: dbData, error: dbError } = await supabase
+						.from("profiles")
+						.select("*")
+						.eq("id", verifyData.user?.id);
+
+					if (dbError) {
+						throw dbError;
+					} else {
+						setProfile({
+							id: verifyData.user!.id,
+							email: dbData![0].email,
+							username: dbData![0].username,
+							first_name: dbData![0].first_name,
+							last_name: dbData![0].last_name,
+							avatar_url: dbData![0].avatar_url,
+						});
+					}
+				}
+			}
+		} catch (error) {
+			throw error;
+		}
+	};
+
+	const updateUsername = async (newUsername: string) => {
+		try {
+			const {
+				data: { user },
+			} = await supabase.auth.getUser();
+			if (!user) {
+				throw new Error("User not authenticated");
+			}
+			const userId = user.id;
+
+			const { data: dbData, error: dbError } = await supabase
+				.from("profiles")
+				.select("*")
+				.eq("id", userId);
+
+			if (dbError) {
+				throw dbError;
+			} else {
+				setProfile({
+					id: userId,
+					email: dbData![0].email,
+					username: newUsername,
+					first_name: dbData![0].first_name,
+					last_name: dbData![0].last_name,
+					avatar_url: dbData![0].avatar_url,
+				});
+			}
+
+			const { error: profileError } = await supabase
+				.from("profiles")
+				.update({ username: newUsername })
+				.eq("id", userId);
+
+			if (profileError) {
+				throw profileError;
+			}
+
+			console.log("Username updated successfully");
+		} catch (error) {
+			throw error;
+		}
+	};
+
+	const updateUserEmail = async (newUserEmail: string) => {
+		try {
+			// Get the current user
+			const {
+				data: { user },
+			} = await supabase.auth.getUser();
+
+			if (!user) {
+				throw new Error("User not authenticated");
+			}
+
+			const userId = user.id;
+
+			// Update email in the authentication system
+			const { error: updateEmailAuthError } = await supabase.auth.updateUser({
+				email: newUserEmail,
+			});
+
+			if (updateEmailAuthError) {
+				console.error(
+					"Error updating email in authentication system:",
+					updateEmailAuthError,
+				);
+				throw updateEmailAuthError;
+			} else {
+				// Update email in the 'profiles' table
+				const { data: dbData, error: dbError } = await supabase
+					.from("profiles")
+					.select("*")
+					.eq("id", userId);
+
+				if (dbError) {
+					throw dbError;
+				} else {
 					setProfile({
-						id: dbData![0].id,
+						id: userId,
+						email: newUserEmail,
+						username: dbData![0].username,
+						first_name: dbData![0].first_name,
+						last_name: dbData![0].last_name,
+						avatar_url: dbData![0].avatar_url,
+					});
+				}
+
+				const { error: profileError } = await supabase
+					.from("profiles")
+					.update({ email: newUserEmail })
+					.eq("id", userId);
+
+				if (profileError) {
+					console.error(
+						"Error updating email in profiles table:",
+						profileError,
+					);
+					throw profileError;
+				}
+				console.log("Email updated successfully");
+			}
+
+			// Successful email update
+		} catch (error) {
+			console.error("Error in updateUserEmail:", error);
+			throw error;
+		}
+	};
+	const updateUserPassword = async (newPassword: string) => {
+		try {
+			// Get the current user
+			const {
+				data: { user },
+			} = await supabase.auth.getUser();
+
+			if (!user) {
+				throw new Error("User not authenticated");
+			}
+
+			const userId = user.id;
+
+			// Update email in the authentication system
+			const { error: updateError } = await supabase.auth.updateUser({
+				password: newPassword,
+			});
+
+			if (updateError) {
+				throw updateError;
+			} else {
+				const { data: dbData, error: dbError } = await supabase
+					.from("profiles")
+					.select("*")
+					.eq("id", userId);
+
+				if (dbError) {
+					throw dbError;
+				} else {
+					setProfile({
+						id: userId,
 						email: dbData![0].email,
 						username: dbData![0].username,
 						first_name: dbData![0].first_name,
 						last_name: dbData![0].last_name,
+						avatar_url: dbData![0].avatar_url,
 					});
 				}
+				console.log("Password updated successfully");
 			}
+
+			// Update email in the 'profiles' table
+
+			// Successful email update
 		} catch (error) {
+			console.error("Error in updateUserEmail:", error);
 			throw error;
 		}
 	};
@@ -244,6 +420,9 @@ export const AuthProvider = ({ children }: any) => {
 				login,
 				verifyOtp,
 				forgotPassword,
+				updateUsername,
+				updateUserEmail,
+				updateUserPassword,
 				logout,
 			}}
 		>
