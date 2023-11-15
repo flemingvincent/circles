@@ -18,9 +18,10 @@ type AuthContextProps = {
 		lastName: string,
 	) => Promise<void>;
 	login: (email: string, password: string) => Promise<void>;
+	verifyOtp: (email: string, token: string) => Promise<string | undefined>;
 	forgotPassword: (
 		email: string,
-		token: string,
+		id: string,
 		password: string,
 	) => Promise<void>;
 	updateUsername: (newUsername: string) => Promise<void>;
@@ -37,6 +38,7 @@ export const AuthContext = createContext<AuthContextProps>({
 	checkEmailAvailability: async () => false,
 	createAccount: async () => {},
 	login: async () => {},
+	verifyOtp: async () => "",
 	forgotPassword: async () => {},
 	updateUsername: async () => {},
 	updateUserEmail: async () => {},
@@ -164,11 +166,7 @@ export const AuthProvider = ({ children }: any) => {
 		}
 	};
 
-	const forgotPassword = async (
-		email: string,
-		token: string,
-		password: string,
-	) => {
+	const verifyOtp = async (email: string, token: string) => {
 		try {
 			const { data: verifyData, error: verifyError } =
 				await supabase.auth.verifyOtp({
@@ -178,13 +176,35 @@ export const AuthProvider = ({ children }: any) => {
 				});
 
 			if (verifyError) {
-				throw verifyError;
+				return Promise.resolve("");
 			} else {
-				const { error: updateError } = await supabase.auth.updateUser({
-					password,
-				});
-				if (updateError) {
-					throw updateError;
+				return Promise.resolve(verifyData.user?.id);
+			}
+		} catch (error) {
+			throw error;
+		}
+	};
+
+	const forgotPassword = async (
+		email: string,
+		id: string,
+		password: string,
+	) => {
+		try {
+			const { error: updateError } = await supabase.auth.updateUser({
+				password,
+			});
+			if (updateError) {
+				throw updateError;
+			} else {
+				const { data: dbData, error: dbError } = await supabase
+					.from("profiles")
+					.select("*")
+					.eq("id", id)
+					.eq("email", email);
+
+				if (dbError) {
+					throw dbError;
 				} else {
 					const { data: dbData, error: dbError } = await supabase
 						.from("profiles")
@@ -398,6 +418,7 @@ export const AuthProvider = ({ children }: any) => {
 				checkEmailAvailability,
 				createAccount,
 				login,
+				verifyOtp,
 				forgotPassword,
 				updateUsername,
 				updateUserEmail,
