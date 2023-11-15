@@ -24,12 +24,12 @@ import Animated, {
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as z from "zod";
 
-import { Text, Input, Button } from "@/components/ui";
+import { Text, Input, Button, Alert } from "@/components/ui";
+import { supabase } from "@/config/supabase";
 import { useAuth } from "@/hooks/useAuth";
 import tw from "@/lib/tailwind";
 import { PublicStackParamList } from "@/routes/public";
 import { useProfileStore, ProfileState } from "@/stores/profileStore";
-import { supabase } from "@/config/supabase";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -50,7 +50,6 @@ export default function Settings({ navigation }: SettingsProps) {
 	const { profile }: ProfileState = useProfileStore();
 	const { checkUsernameAvailability, checkEmailAvailability } = useAuth();
 	const textInputRef = useRef<TextInput>(null);
-	
 
 	const [isUsernameAvailable, setIsUsernameAvailable] = useState<
 		boolean | null
@@ -74,69 +73,66 @@ export default function Settings({ navigation }: SettingsProps) {
 		},
 	});
 
+	// Triggers the validation of the username field.
+	// If the username is valid, it checks if it's available.
+	// If the username is available, it sets the state to true.
+	// If the username is not available, it sets the state to false.
 	async function updateUsernameAvailability() {
-		// For simplicity and so the form looks pleasing off the bat,
-		// the username availability is green if the username hasn't changed.
-		if (getValues("username") === profile?.username) {
-			setIsUsernameAvailable(true);
-		} else {
-			checkUsernameAvailability(getValues("username")).then(
-				(isUsernameAvailable) => {
-					setIsUsernameAvailable(isUsernameAvailable);
-				},
-			);
-		}
-	}
-	async function updateUsernameCP() {
-		// For simplicity and so the form looks pleasing off the bat,
-		// the username availability is green if the username hasn't changed.
-		if (getValues("username") === profile?.username) {
-			setIsUsernameAvailable(true);
-		} else {
-			checkUsernameAvailability(getValues("username")).then(
-				(isUsernameAvailable) => {
-					setIsUsernameAvailable(isUsernameAvailable);
-					updateUsername(getValues("username"));
-				},
-			);
-		}
+		trigger("username").then((isValid) => {
+			if (isValid) {
+				if (getValues("username") === profile?.username) {
+					setIsUsernameAvailable(true);
+				} else {
+					checkUsernameAvailability(getValues("username")).then(
+						(isUsernameAvailable) => {
+							setIsUsernameAvailable(isUsernameAvailable);
+						},
+					);
+				}
+			}
+		});
 	}
 
-
+	// Triggers the validation of the email field.
+	// If the email is valid, it checks if it's available.
+	// If the email is available, it sets the state to true.
+	// If the email is not available, it sets the state to false.
 	async function updateEmailAvailability() {
-		// For simplicity and so the form looks pleasing off the bat,
-		// the email availability is green if the email hasn't changed.
-		if (getValues("email") === profile?.email) {
-			setIsEmailAvailable(true);
-		} else {
-			checkEmailAvailability(getValues("email")).then((isEmailAvailable) => {
-				setIsEmailAvailable(isEmailAvailable);
-			});
-		}
-	}
-
-	async function updateEmailCP() {
-		// For simplicity and so the form looks pleasing off the bat,
-		// the email availability is green if the email hasn't changed.
-		if (getValues("email") === profile?.email) {
-			setIsEmailAvailable(true);
-		} else {
-			checkEmailAvailability(getValues("email")).then((isEmailAvailable) => {
-				setIsEmailAvailable(isEmailAvailable);
-				updateUserEmail(getValues("email"));
-			});
-		}
+		trigger("email").then((isValid) => {
+			if (isValid) {
+				if (getValues("email") === profile?.email) {
+					setIsEmailAvailable(true);
+				} else {
+					checkEmailAvailability(getValues("email")).then(
+						(isEmailAvailable) => {
+							setIsEmailAvailable(isEmailAvailable);
+						},
+					);
+				}
+			}
+		});
 	}
 
 	async function onSubmit() {
+		// If the user is on the username screen.
 		if (selectionIndex === 1) {
+			// Trigger the validation of the username field.
 			trigger("username").then((isValid) => {
+				// If the username is valid.
 				if (isValid) {
+					// Update the username. Display a success message. Go back to the previous screen.
 					try {
-						updateUsernameAvailability();
+						updateUsername(getValues("username"));
+
+						alertRef.current?.showAlert({
+							title: "Success!",
+							message: "Your username has been updated.",
+							variant: "success",
+						});
+
+						handleScrollBackward();
 					} catch (error) {
 						// @ts-ignore
-						console.log("Supabase Create Account Error: ", error);
 						alertRef.current?.showAlert({
 							title: "Oops!",
 							// @ts-ignore
@@ -146,14 +142,25 @@ export default function Settings({ navigation }: SettingsProps) {
 					}
 				}
 			});
+			// If the user is on the email screen.
 		} else if (selectionIndex === 2) {
+			// Trigger the validation of the email field.
 			trigger("email").then((isValid) => {
+				// If the email is valid.
 				if (isValid) {
+					// Update the email. Display a success message. Go back to the previous screen.
 					try {
-						updateEmailAvailability();
+						updateUserEmail(getValues("email"));
+
+						alertRef.current?.showAlert({
+							title: "Success!",
+							message: "Your email has been updated.",
+							variant: "success",
+						});
+
+						handleScrollBackward();
 					} catch (error) {
 						// @ts-ignore
-						console.log("Supabase Create Account Error: ", error);
 						alertRef.current?.showAlert({
 							title: "Oops!",
 							// @ts-ignore
@@ -163,13 +170,36 @@ export default function Settings({ navigation }: SettingsProps) {
 					}
 				}
 			});
+			// If the user is on the password screen.
 		} else if (selectionIndex === 3) {
-			trigger("password").then((isValid1) => {
-				if (isValid1) {
+			// Trigger the validation of the password field.
+			trigger("password").then((isValid) => {
+				// If the password is valid.
+				if (isValid) {
+					// Trigger the validation of the confirmPassword field.
 					trigger("confirmPassword").then((isValid2) => {
+						// If the confirmPassword is valid.
 						if (isValid2) {
-							updateUserPassword(getValues("password"));
-							// TODO (change user password here)
+							// Update the password. Display a success message. Go back to the previous screen.
+							try {
+								updateUserPassword(getValues("password"));
+
+								alertRef.current?.showAlert({
+									title: "Success!",
+									message: "Your password has been updated.",
+									variant: "success",
+								});
+
+								handleScrollBackward();
+							} catch (error) {
+								// @ts-ignore
+								alertRef.current?.showAlert({
+									title: "Oops!",
+									// @ts-ignore
+									message: error.message + ".",
+									variant: "error",
+								});
+							}
 						}
 					});
 				}
@@ -258,7 +288,7 @@ export default function Settings({ navigation }: SettingsProps) {
 	};
 	const pickImage = async () => {
 		try {
-		  	const result = await ImagePicker.launchImageLibraryAsync({
+			const result = await ImagePicker.launchImageLibraryAsync({
 				mediaTypes: ImagePicker.MediaTypeOptions.Images,
 				allowsEditing: true,
 				aspect: [1, 1],
@@ -266,61 +296,70 @@ export default function Settings({ navigation }: SettingsProps) {
 			});
 			if (!result.canceled) {
 				const profileImageUri = result.assets[0].uri;
-				setProfileImage(profileImageUri || defaultPic);
+				const imageSource = {uri: profileImageUri};
+				setProfileImage(imageSource || defaultPic);
 			}
 		} catch (error) {
-			console.error('Error picking image:', error);
-		  	throw error; // Rethrow the error to handle it elsewhere if needed
+			console.error("Error picking image:", error);
+			throw error; // Rethrow the error to handle it elsewhere if needed
 		}
 	};
-	  
+
 	const updateAvatar = async () => {
 		try {
-			const { data: { user } } = await supabase.auth.getUser();
+			const {
+				data: { user },
+			} = await supabase.auth.getUser();
 			if (!user) {
-				throw new Error('User not authenticated');
+				throw new Error("User not authenticated");
 			}
-	
+
 			// Upload the new profile picture to the "avatars" bucket
-			const { data, error: uploadError } = await supabase.storage
-			  .from('avatars')
-		      .upload(`user-${user?.id}.jpg`, profileImage, {
-			  cacheControl: 'public, max-age=31536000', // Optional: Set cache control headers
-		  	});
-	  
+			const { error: uploadError } = await supabase.storage
+				.from("avatars")
+				.upload(`user-${user?.id}.jpg`, profileImage, {
+					contentType:'image/jpeg' // Optional: Set cache control headers
+				});
+
 			if (uploadError) {
-				const { data, error: updateError } = await supabase.storage
-			  	  .from('avatars')
-		          .update(`user-${user?.id}.jpg`, profileImage, {
-			      cacheControl: 'public, max-age=31536000', // Optional: Set cache control headers
-		  		});
-				if(updateError){
-		  			console.error('Error updating profile picture:', uploadError.message);
+				const { error: updateError } = await supabase.storage
+					.from("avatars")
+					.update(`user-${user?.id}.jpg`, profileImage, {
+						contentType:'image/jpeg' // Optional: Set cache control headers
+					});
+				if (updateError) {
+					console.error("Error updating profile picture:", uploadError.message);
 				} else {
-					console.log('Profile picture updated successfully:', JSON.stringify(profileImage));
-			  	}
+					console.log(
+						"Profile picture updated successfully:",
+						JSON.stringify(profileImage),
+					);
+				}
 			} else {
 				const userId = user.id;
 				const newAvatar_url = `user-${user?.id}.jpg`;
 				const { error: profileError } = await supabase
-					.from('profiles')
-					.update({ avatar_url: newAvatar_url})
-					.eq('id', userId);
-				
+					.from("profiles")
+					.update({ avatar_url: newAvatar_url })
+					.eq("id", userId);
+
 				if (profileError) {
 					throw profileError;
 				}
-		  		console.log('Profile picture uploaded successfully:', JSON.stringify(profileImage));
+				console.log(
+					"Profile picture uploaded successfully:",
+					JSON.stringify(profileImage),
+				);
 			}
-			
 		} catch (error) {
-		  console.error('Error updating profile picture:', error);
-		  throw error; 
+			console.error("Error updating profile picture:", error);
+			throw error;
 		}
 	};
 
 	return (
 		<SafeAreaView style={tw`flex-1 bg-white`}>
+			<Alert ref={alertRef} />
 			<KeyboardAvoidingView
 				style={tw`flex-1`}
 				behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -392,9 +431,9 @@ export default function Settings({ navigation }: SettingsProps) {
 							onPress={() => {
 								// Set the index so we know to move horizontally and update the title.
 								setSelectionIndex(2);
-								// Set the username value of the form.
+								// Set the email value of the form.
 								setValue("email", profile?.email!);
-								// Check the username availability right away.
+								// Check the email availability right away.
 								updateEmailAvailability();
 								// Finally, go to the screen.
 								handleScrollForward();
@@ -529,7 +568,7 @@ export default function Settings({ navigation }: SettingsProps) {
 															? require("@/assets/icons/eye-close.svg")
 															: require("@/assets/icons/eye.svg")
 													}
-													style={tw`w-6 h-6`}
+													style={tw`w-6 h-6 rounded-full`}
 												/>
 											</Pressable>
 										}
@@ -683,7 +722,7 @@ export default function Settings({ navigation }: SettingsProps) {
 										setIsEmailAvailable(null);
 										onChange(e);
 									}}
-									onSubmitEditing={onSubmit}
+									onSubmitEditing={updateEmailAvailability}
 								/>
 							)}
 						/>
@@ -691,7 +730,7 @@ export default function Settings({ navigation }: SettingsProps) {
 							variant="secondary"
 							label="Save"
 							style={tw`absolute self-center bottom-4`}
-							onPress={updateEmailCP}
+							onPress={onSubmit}
 							loading={isSubmitting}
 						/>
 					</View>
@@ -733,7 +772,7 @@ export default function Settings({ navigation }: SettingsProps) {
 										setIsUsernameAvailable(null);
 										onChange(e);
 									}}
-									onSubmitEditing={onSubmit}
+									onSubmitEditing={updateUsernameAvailability}
 								/>
 							)}
 						/>
@@ -741,7 +780,7 @@ export default function Settings({ navigation }: SettingsProps) {
 							variant="secondary"
 							label="Save"
 							style={tw`absolute self-center bottom-4`}
-							onPress={updateUsernameCP}
+							onPress={onSubmit}
 							loading={isSubmitting}
 						/>
 					</View>
