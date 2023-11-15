@@ -254,7 +254,6 @@ export default function Settings({ navigation }: SettingsProps) {
 			if (!user) {
 				throw new Error('User not authenticated');
 			}
-			console.log('111111');
 	
 			// Upload the new profile picture to the "avatars" bucket
 			const { data, error: uploadError } = await supabase.storage
