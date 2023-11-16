@@ -7,7 +7,7 @@ import { Status } from "@/types/profile";
 
 interface IAvatarProps {
 	avatar_url: string | null | undefined;
-	status?: Status;
+	status?: Status | null | undefined;
 	style?: Image["props"]["style"];
 }
 

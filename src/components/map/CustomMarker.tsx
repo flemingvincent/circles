@@ -8,7 +8,7 @@ import { IProfile, Status } from "@/types/profile";
 export interface ICustomMarkerProps {
 	location: IProfile["location"];
 	avatar_url: string | null | undefined;
-	status?: Status | undefined;
+	status?: Status | null | undefined;
 }
 
 export const CustomMarker = ({

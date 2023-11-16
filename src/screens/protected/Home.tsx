@@ -198,6 +198,7 @@ export default function Home({ navigation }: HomeProps) {
 					<CustomMarker
 						location={location.coords}
 						avatar_url={profile?.avatar_url}
+						status={profile?.status}
 					/>
 				)}
 			</MapView>
