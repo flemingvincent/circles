@@ -20,7 +20,7 @@ export const CustomHandle: React.FC<HandleProps> = ({ navigation }) => {
 				style={tw`w-[1.8421875rem] h-[0.25rem] bg-[#e5e5e5] self-center rounded-full m-2.5`}
 			/>
 			<View style={tw`w-full flex-row items-center gap-x-2 mt-2 px-4`}>
-				<Avatar avatar_url={profile?.avatar_url} />
+				<Avatar avatar_url={profile?.avatar_url} status={profile?.status} />
 				<View style={tw`flex-col flex-grow`}>
 					<Text variant="headline" weight="semibold">
 						{profile?.first_name} {profile?.last_name}

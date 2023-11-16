@@ -13,4 +13,5 @@ export interface IProfile {
 	last_name: string;
 	avatar_url?: string | null;
 	location?: Location;
+	status?: Status | null;
 }

@@ -30,6 +30,7 @@ import { useAuth } from "@/hooks/useAuth";
 import tw from "@/lib/tailwind";
 import { ProtectedStackParamList } from "@/routes/protected";
 import { useProfileStore, ProfileState } from "@/stores/profileStore";
+import { Status } from "@/types/profile";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -44,7 +45,10 @@ const selectionOptions = [
 	"Email",
 	"Password",
 	"Profile Picture",
+	"Update Status",
 ];
+
+const statusOptions = ["active", "away", "busy", "offline"];
 
 export default function Settings({ navigation }: SettingsProps) {
 	const { updateUsername, updateUserEmail, updateUserPassword, logout } =
@@ -66,6 +70,7 @@ export default function Settings({ navigation }: SettingsProps) {
 
 	const defaultPic = require("@/assets/icons/avatar.svg");
 	const [profileImage, setProfileImage] = useState(defaultPic);
+	const [userStatus, setUserStatus] = useState<Status>(profile?.status!);
 
 	const scrollRef = useAnimatedRef<ScrollView>();
 	const alertRef = useRef<any>(null);
@@ -354,6 +359,7 @@ export default function Settings({ navigation }: SettingsProps) {
 						first_name: profile!.first_name,
 						last_name: profile!.last_name,
 						avatar_url: data?.signedUrl,
+						status: profile!.status,
 					});
 
 					console.log(
@@ -391,6 +397,7 @@ export default function Settings({ navigation }: SettingsProps) {
 					first_name: profile!.first_name,
 					last_name: profile!.last_name,
 					avatar_url: data?.signedUrl,
+					status: profile!.status,
 				});
 
 				console.log(
@@ -408,6 +415,50 @@ export default function Settings({ navigation }: SettingsProps) {
 			}
 		} catch (error) {
 			console.error("Error updating profile picture:", error);
+			throw error;
+		}
+	};
+
+	const updateUserStatus = async (newStatus: Status) => {
+		try {
+			const { error } = await supabase
+				.from("profiles")
+				.update({ status: newStatus })
+				.eq("id", profile?.id);
+
+			if (error) {
+				throw error;
+			}
+
+			setProfile({
+				id: profile!.id,
+				email: profile!.email,
+				username: profile!.username,
+				first_name: profile!.first_name,
+				last_name: profile!.last_name,
+				avatar_url: profile!.avatar_url,
+				status: newStatus,
+			});
+
+			console.log("User status updated successfully");
+
+			alertRef.current?.showAlert({
+				title: "Success!",
+				message: "Your status has been updated.",
+				variant: "success",
+			});
+
+			handleScrollBackward();
+		} catch (error) {
+			console.error("Error updating user status:", error);
+
+			alertRef.current?.showAlert({
+				title: "Oops!",
+				// @ts-ignore
+				message: error.message + ".",
+				variant: "error",
+			});
+
 			throw error;
 		}
 	};
@@ -527,6 +578,19 @@ export default function Settings({ navigation }: SettingsProps) {
 							/>
 						</TouchableOpacity>
 						<TouchableOpacity
+							style={tw`flex flex-row justify-between w-full p-4 border-b border-b-border`}
+							onPress={() => {
+								handleScrollForward();
+								setSelectionIndex(5);
+							}}
+						>
+							<Text weight="semibold">Update Status</Text>
+							<Image
+								style={tw`w-6 h-6`}
+								source={require("@/assets/icons/chevron-right-gray.svg")}
+							/>
+						</TouchableOpacity>
+						<TouchableOpacity
 							style={tw`flex flex-row justify-between w-full p-4`}
 							onPress={() => {
 								logout();
@@ -566,6 +630,50 @@ export default function Settings({ navigation }: SettingsProps) {
 					</View>
 
 					{/* Screen Two. Technically, four screens, but only the selected one is shown */}
+
+					{/* Status */}
+					<View
+						style={tw`flex items-center justify-center w-[${SCREEN_WIDTH}px] px-12 pt-6 ${
+							selectionIndex === 5 ? "" : "hidden"
+						}`}
+					>
+						<View style={tw`flex-1 w-full gap-y-4`}>
+							{statusOptions.map((status, index) => (
+								<TouchableOpacity
+									key={index}
+									style={[
+										tw`h-12 px-4 rounded-xl flex flex-row items-center justify-between`,
+										userStatus === status && tw`bg-border`,
+									]}
+									onPress={() => {
+										setUserStatus(status as Status);
+									}}
+								>
+									<Text style={tw`capitalize`} weight="semibold">
+										{status}
+									</Text>
+									<View
+										style={[
+											tw`w-[1.125rem] h-[1.125rem] rounded-full border-2 border-white`,
+											status === "active" && tw`bg-green-500`,
+											status === "away" && tw`bg-yellow-500`,
+											status === "busy" && tw`bg-red-500`,
+											status === "offline" && tw`bg-gray-500`,
+										]}
+									/>
+								</TouchableOpacity>
+							))}
+						</View>
+						<Button
+							variant="secondary"
+							label="Save"
+							style={tw`bottom-4 absolute`}
+							onPress={() => {
+								updateUserStatus(userStatus);
+							}}
+							loading={isSubmitting}
+						/>
+					</View>
 
 					{/* Profile Picture */}
 					<View

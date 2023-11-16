@@ -3,6 +3,7 @@ import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
+import { LogBox } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useDeviceContext } from "twrnc";
@@ -14,6 +15,8 @@ import { LocationProvider } from "@/providers/LocationProvider";
 import { AppRoutes } from "@/routes";
 
 SplashScreen.preventAutoHideAsync();
+
+LogBox.ignoreAllLogs();
 
 export default function App() {
 	useDeviceContext(tw);
