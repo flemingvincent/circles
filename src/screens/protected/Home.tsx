@@ -10,11 +10,10 @@ import { Platform, View, Linking, AppState } from "react-native";
 import { SelectList } from "react-native-dropdown-select-list";
 import MapView from "react-native-maps";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Avatar } from "../../../src/components/ui/Avatar";
 
 import { CustomMarker } from "@/components/map/CustomMarker";
 import { CustomBackdrop, CustomHandle, HandleProps } from "@/components/sheet";
-import { Button, Text } from "@/components/ui";
+import { Button, Text, Avatar } from "@/components/ui";
 import { useLocation } from "@/hooks/useLocation";
 import tw from "@/lib/tailwind";
 import { ProtectedStackParamList } from "@/routes/protected";
@@ -464,29 +463,20 @@ export default function Home({ navigation }: HomeProps) {
 			if (user) {
 				// TODO: Get a user's location from the db
 				usersInCircle.push(
-					<View style={tw`mt-3`}>
-						<View style={tw`w-full flex-row items-center gap-x-2 mt-2 px-4`}>
+					<View style={tw`mt-4`}>
+						<View style={tw`w-full flex-row items-center gap-x-2`}>
 							<Avatar avatar_url={user?.avatar_url} status={user?.status} />
 							<View style={tw`flex-col flex-grow`}>
-								<View style={tw`flex-row flex-grow`}>
-									<Text variant="headline" weight="semibold">
-										{user?.first_name} {user?.last_name}
-									</Text>
-									<Text
-										variant="subheadline"
-										style={tw`text-content-secondary`}
-									>
-										@{user?.username}
-									</Text>
-								</View>
-								<View>
-									<Text
-										variant="subheadline"
-										style={tw`text-content-secondary`}
-									>
-										{user?.status}
-									</Text>
-								</View>
+								<Text
+									style={tw`capitalize`}
+									variant="headline"
+									weight="semibold"
+								>
+									{user?.first_name} {user?.last_name}{" "}
+								</Text>
+								<Text variant="subheadline" style={tw`text-content-secondary`}>
+									@{user?.username}
+								</Text>
 							</View>
 						</View>
 					</View>,
@@ -675,16 +665,9 @@ export default function Home({ navigation }: HomeProps) {
 				)}
 				{/* Circle Selected */}
 				{selectedCircle && (
-					<View
-						// flex-1 justify-center gap-y-6 py-4
-						style={tw`flex-1 justify-between m-3`}
-					>
-						<View>
-							<Text
-								variant="subheadline"
-								weight="semibold"
-								style={tw`ml-3 mt-3`}
-							>
+					<View style={tw`flex-1 px-4 mt-6 pb-[${insets.bottom}px]`}>
+						<View style={tw`flex-1`}>
+							<Text variant="subheadline" weight="semibold">
 								{selectedCircle.toString()}
 							</Text>
 							{createListForUsersInCurrentCircle()}
