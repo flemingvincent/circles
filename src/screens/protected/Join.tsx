@@ -8,12 +8,16 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import * as z from "zod";
 
 import { Alert, Button, Input, Text } from "@/components/ui";
+import { useCircle } from "@/hooks/useCircle";
 import tw from "@/lib/tailwind";
 import { ProtectedStackParamList } from "@/routes/protected";
+import { useProfileStore, ProfileState } from "@/stores/profileStore";
 
 type JoinProps = NativeStackScreenProps<ProtectedStackParamList, "Join">;
 
 export default function Join({ navigation }: JoinProps) {
+	const { joinCircle } = useCircle();
+	const { profile }: ProfileState = useProfileStore();
 	const alertRef = useRef<any>(null);
 
 	const formSchema = z.object({
@@ -21,8 +25,8 @@ export default function Join({ navigation }: JoinProps) {
 			.string({
 				required_error: "Oops! A code is required.",
 			})
-			.regex(/^[0-9]+$/, "Oops! Only numbers allowed.")
-			.min(6, "Oops! 6 digits are required."),
+			.regex(/^[a-zA-Z]+$/, "Oops! Only letters allowed.")
+			.min(6, "Oops! 6 letters are required."),
 	});
 
 	const {
@@ -36,7 +40,10 @@ export default function Join({ navigation }: JoinProps) {
 	const onSubmit = async (data: z.infer<typeof formSchema>) => {
 		try {
 			const { code } = data;
-			console.log("Logging to prevent lint errors", code);
+			console.log("Joining a circle using this code: ", code);
+			await joinCircle(code, profile!.id).then((circlesprofilesid) => {
+				console.log("New circlesprofiles id: ", circlesprofilesid);
+			});
 		} catch (error) {
 			console.log(error);
 			alertRef.current?.showAlert({
@@ -89,7 +96,7 @@ export default function Join({ navigation }: JoinProps) {
 								value={value}
 								onChangeText={onChange}
 								maxLength={6}
-								keyboardType="number-pad"
+								keyboardType="default"								
 							/>
 						)}
 					/>
