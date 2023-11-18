@@ -4128,22 +4128,22 @@ expo-font@~11.4.0:
   dependencies:
     fontfaceobserver "^2.1.0"
 
-expo-image-loader@~4.4.0:
-  version "4.4.0"
-  resolved "https://registry.yarnpkg.com/expo-image-loader/-/expo-image-loader-4.4.0.tgz#35909516311aa60fa4bf35aa6eb7624d7f7f788d"
-  integrity sha512-dq88tiRB8aB1U+O/oJI7IY4VU9Nu2iDjEwR8QDfLtD4xWd5lNGoyic5Vh7911E1qNJFqNMSVIVzOD5l1SQ3A6g==
+expo-image-loader@~4.3.0:
+  version "4.3.0"
+  resolved "https://registry.yarnpkg.com/expo-image-loader/-/expo-image-loader-4.3.0.tgz#d897b4d4f1838faa8291c36f00b99c2b36a6ac5c"
+  integrity sha512-2kqJIO+oYM8J3GbvTUHLqTSpt1dLpOn/X0eB4U4RTuzz/faj8l/TyQELsMBLlGAkweNUuG9LqznbaBz+WuSFEw==
 
-expo-image-picker@^14.5.0:
-  version "14.5.0"
-  resolved "https://registry.yarnpkg.com/expo-image-picker/-/expo-image-picker-14.5.0.tgz#fdc14c74ad338a6a630f8fc5c81e642d6bea343c"
-  integrity sha512-9icvfQuWMdNKufFqu+FxenKcfybz9ior+XYQCIl/q5+mpHPo2tKq8I30vu2BjsOJ0Cfo7V4vMeN7a9F/3ooUfQ==
+expo-image-picker@~14.3.2:
+  version "14.3.2"
+  resolved "https://registry.yarnpkg.com/expo-image-picker/-/expo-image-picker-14.3.2.tgz#5ae2f36fe518a10c8fe82e5ff2ee735c14817cfc"
+  integrity sha512-xr/YeQMIYheXecWP033F2SPwpBlBR5xVCx7YSfSCTH8Y9pw7Z886agqKGbS9QBVGlzJ5qecJktZ6ASSzeslDVg==
   dependencies:
-    expo-image-loader "~4.4.0"
+    expo-image-loader "~4.3.0"
 
-expo-image@~1.3.4:
-  version "1.3.4"
-  resolved "https://registry.npmjs.org/expo-image/-/expo-image-1.3.4.tgz"
-  integrity sha512-2N6etMJA5OWbbvL9IdPVchNoJd18kVo5gcN4uC9Xtv1VM/ik6PRB3Tz+qP/0Uglkzh/yyJjw7aDTqWozj5nLZw==
+expo-image@~1.3.5:
+  version "1.3.5"
+  resolved "https://registry.yarnpkg.com/expo-image/-/expo-image-1.3.5.tgz#426deca8cc9a8a3e72a649e9d98c5019efde0d37"
+  integrity sha512-yrIR2mnfIKbKcguoqWK3U5m3zvLPnonvSCabB2ErVGhws8zQs7ILYf+7T08j8U6eFcohjw0CoAFJ6RWNsX2EhA==
 
 expo-json-utils@~0.7.0:
   version "0.7.1"
@@ -4214,10 +4214,10 @@ expo-updates-interface@~0.10.0:
   resolved "https://registry.npmjs.org/expo-updates-interface/-/expo-updates-interface-0.10.1.tgz"
   integrity sha512-I6JMR7EgjXwckrydDmrkBEX/iw750dcqpzQVsjznYWfi0HTEOxajLHB90fBFqQkUV5i5s4Fd3hYQ1Cn0oMzUbA==
 
-expo-updates@~0.18.16:
-  version "0.18.16"
-  resolved "https://registry.npmjs.org/expo-updates/-/expo-updates-0.18.16.tgz"
-  integrity sha512-5/3Yh6FHG8oRDz1pqpn7NEO6GQBH5GV/sygnkkn3JxsiXzlOsuOY7+x+gFr4CdKVyreaoJV863ZxKvxplVE4fA==
+expo-updates@~0.18.17:
+  version "0.18.17"
+  resolved "https://registry.yarnpkg.com/expo-updates/-/expo-updates-0.18.17.tgz#11ce03ee95ee19e1a1e253b2a98dd9b3dc019c71"
+  integrity sha512-oyBDR94nYEtVw+iBod3N9LFqTfpLHofmUjh0lP12YZINUI89hvoAyqRe56eSnlpWkzziG6g1y4NGva0D0ViK6w==
   dependencies:
     "@expo/code-signing-certificates" "0.0.5"
     "@expo/config" "~8.1.0"
@@ -7039,10 +7039,10 @@ react-native-url-polyfill@^2.0.0:
   dependencies:
     whatwg-url-without-unicode "8.0.0-3"
 
-react-native@0.72.5:
-  version "0.72.5"
-  resolved "https://registry.npmjs.org/react-native/-/react-native-0.72.5.tgz"
-  integrity sha512-oIewslu5DBwOmo7x5rdzZlZXCqDIna0R4dUwVpfmVteORYLr4yaZo5wQnMeR+H7x54GaMhmgeqp0ZpULtulJFg==
+react-native@0.72.6:
+  version "0.72.6"
+  resolved "https://registry.yarnpkg.com/react-native/-/react-native-0.72.6.tgz#9f8d090694907e2f83af22e115cc0e4a3d5fa626"
+  integrity sha512-RafPY2gM7mcrFySS8TL8x+TIO3q7oAlHpzEmC7Im6pmXni6n1AuufGaVh0Narbr1daxstw7yW7T9BKW5dpVc2A==
   dependencies:
     "@jest/create-cache-key-function" "^29.2.1"
     "@react-native-community/cli" "11.3.7"

@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Image } from "expo-image";
-import { useRef, useCallback } from "react";
+import { useRef, useCallback, useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
 	Dimensions,
@@ -22,10 +22,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import * as z from "zod";
 
 import { Alert, Button, Input, Text, ScreenIndicator } from "@/components/ui";
+import { supabase } from "@/config/supabase";
 import { useCircle } from "@/hooks/useCircle";
 import tw from "@/lib/tailwind";
 import { ProtectedStackParamList } from "@/routes/protected";
 import { useProfileStore, ProfileState } from "@/stores/profileStore";
+import { IProfile } from "@/types/profile";
 
 type JoinProps = NativeStackScreenProps<ProtectedStackParamList, "Join">;
 
@@ -37,6 +39,11 @@ export default function Create({ navigation }: JoinProps) {
 	const scrollRef = useAnimatedRef<ScrollView>();
 	const alertRef = useRef<any>(null);
 	const translateX = useSharedValue(0);
+
+	const [fetchedProfiles, setFetchedProfiles] = useState<IProfile[]>([]);
+	const [query, setQuery] = useState<string>("");
+	const [searchedProfiles, setSearchedProfiles] = useState<IProfile[]>([]);
+	const [selectedProfiles, setSelectedProfiles] = useState<IProfile[]>([]);
 
 	// The following two variables and functions are used to automatically focus the inputs.
 	type TextInputRef = React.RefObject<TextInput>;
@@ -88,6 +95,49 @@ export default function Create({ navigation }: JoinProps) {
 		scrollRef.current?.scrollTo({ x: SCREEN_WIDTH * (activeIndex.value - 1) });
 	}, []);
 
+	const handleSearch = (query: string) => {
+		setQuery(query);
+		// filter by username
+		const filteredProfiles = fetchedProfiles.filter((profile) =>
+			profile.username.toLowerCase().includes(query.toLowerCase()),
+		);
+		setSearchedProfiles(filteredProfiles);
+	};
+
+	const handleSelectProfile = (profile: IProfile) => {
+		setSelectedProfiles((prev) => [...prev, profile]);
+		setFetchedProfiles((prev) =>
+			prev.filter((fetchedProfile) => fetchedProfile.id !== profile.id),
+		);
+		setQuery("");
+	};
+
+	const handleRemoveProfile = (profile: IProfile) => {
+		setSelectedProfiles((prev) =>
+			prev.filter((selectedProfile) => selectedProfile.id !== profile.id),
+		);
+		setFetchedProfiles((prev) => [...prev, profile]);
+	};
+
+	// Fetches all users from the profiles table except the current user
+	// Stores the fetched profiles in the fetchedProfiles state
+	useEffect(() => {
+		(async () => {
+			try {
+				const { data, error } = await supabase
+					.from("profiles")
+					.select("*")
+					.neq("id", profile!.id);
+
+				if (error) throw error;
+
+				setFetchedProfiles(data);
+			} catch (error) {
+				console.log(error);
+			}
+		})();
+	}, []);
+
 	const formSchema = z.object({
 		name: z
 			.string({
@@ -109,14 +159,16 @@ export default function Create({ navigation }: JoinProps) {
 	async function onSubmit(data: z.infer<typeof formSchema>) {
 		try {
 			const { name } = data;
-			// TODO: Create circle on the backend using this name
 			console.log("circle name: ", name);
 			console.log("profile id: ", profile!.id);
+
+			// Create a new circle
 			await createCircle(name, profile!.id).then((invitationCode) => {
 				console.log("New Invitation Code: ", invitationCode);
 			});
 
-			handleScrollForward();
+			// TODO: Send invites to selected profiles
+			console.log("Send invites to selected profiles here!");
 		} catch (error) {
 			console.log(error);
 			alertRef.current?.showAlert({
@@ -205,10 +257,10 @@ export default function Create({ navigation }: JoinProps) {
 						<View style={tw`px-12`}>
 							<Button
 								variant="primary"
-								label="Create"
+								label="Continue"
 								style={tw`mb-4`}
 								loading={isSubmitting}
-								onPress={handleSubmit(onSubmit)}
+								onPress={handleScrollForward}
 							/>
 						</View>
 					</View>
@@ -225,7 +277,6 @@ export default function Create({ navigation }: JoinProps) {
 							>
 								Search for and invite your friends.
 							</Text>
-							{/* TODO Add Search Functionality here */}
 							<TextInput
 								ref={textInputRefs[1]}
 								placeholder="Search"
@@ -235,7 +286,95 @@ export default function Create({ navigation }: JoinProps) {
 										fontFamily: "OpenRundeSemibold",
 									},
 								]}
+								value={query}
+								onChangeText={(text) => handleSearch(text)}
 							/>
+							{/* If the query is null, undefined, or "" show selected users */}
+							{/* Else show the filtered users */}
+
+							{query === "" ? (
+								<ScrollView style={tw`flex-1 mt-6`}>
+									{selectedProfiles.map((profile) => (
+										<View
+											key={profile.id}
+											style={tw`flex-row items-center justify-between mb-4`}
+										>
+											<View style={tw`flex-row items-center gap-x-2`}>
+												<Image
+													source={
+														profile.avatar_url
+															? { uri: profile.avatar_url }
+															: require("@/assets/icons/avatar.svg")
+													}
+													style={tw`w-11 h-11 rounded-full`}
+												/>
+												<View style={tw`flex-col`}>
+													<Text
+														style={tw`capitalize`}
+														variant="headline"
+														weight="semibold"
+													>
+														{profile?.first_name} {profile?.last_name}
+													</Text>
+													<Text
+														variant="subheadline"
+														style={tw`text-content-secondary`}
+													>
+														@{profile?.username}
+													</Text>
+												</View>
+											</View>
+											<Pressable onPress={() => handleRemoveProfile(profile)}>
+												<Image
+													source={require("@/assets/icons/x.svg")}
+													style={tw`w-6 h-6`}
+												/>
+											</Pressable>
+										</View>
+									))}
+								</ScrollView>
+							) : (
+								<ScrollView style={tw`flex-1 mt-6`}>
+									{searchedProfiles.map((profile) => (
+										<View
+											key={profile.id}
+											style={tw`flex-row items-center justify-between mb-4`}
+										>
+											<View style={tw`flex-row items-center gap-x-2`}>
+												<Image
+													source={
+														profile.avatar_url
+															? { uri: profile.avatar_url }
+															: require("@/assets/icons/avatar.svg")
+													}
+													style={tw`w-11 h-11 rounded-full`}
+												/>
+												<View style={tw`flex-col`}>
+													<Text
+														style={tw`capitalize`}
+														variant="headline"
+														weight="semibold"
+													>
+														{profile?.first_name} {profile?.last_name}
+													</Text>
+													<Text
+														variant="subheadline"
+														style={tw`text-content-secondary`}
+													>
+														@{profile?.username}
+													</Text>
+												</View>
+											</View>
+											<Text
+												weight="semibold"
+												onPress={() => handleSelectProfile(profile)}
+											>
+												Add
+											</Text>
+										</View>
+									))}
+								</ScrollView>
+							)}
 						</View>
 						<View style={tw`px-12`}>
 							<Button
@@ -243,7 +382,7 @@ export default function Create({ navigation }: JoinProps) {
 								label="Send Invite"
 								style={tw`mb-4`}
 								loading={isSubmitting}
-								onPress={() => console.log("Adding a friend")}
+								onPress={handleSubmit(onSubmit)}
 							/>
 						</View>
 					</View>
