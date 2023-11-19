@@ -11,11 +11,27 @@ export type CircleContextProps = {
 		inviteCode: string,
 		userId: string,
 	) => Promise<string | undefined>;
+	getCircles: (	 
+		userId: string,
+	) => Promise<any>;
+	getRelatedProfiles: (		
+		userId: string,
+	) => Promise<any>;
+	getRelatedCircleMappings: (		
+		userId: string,
+	) => Promise<any>;
+	getRelatedProfileMappings: (		
+		userId: string,
+	) => Promise<any>;
 };
 
 export const CircleContext = createContext<CircleContextProps>({
 	createCircle: async () => "",
 	joinCircle: async () => "",
+	getCircles: async () => {},
+	getRelatedProfiles: async () => {},
+	getRelatedCircleMappings: async () => {},
+	getRelatedProfileMappings: async () => {},
 });
 
 export const CircleProvider = ({ children }: any) => {
@@ -98,11 +114,91 @@ export const CircleProvider = ({ children }: any) => {
 		}
 	};
 
+	const getCircles = async (userId: string) => {
+		try {
+			// get user cirles
+			const { data, error: getCirclesError } = await supabase.rpc(
+				"get_circles",
+				{ profile_id_input: userId },
+			);													  
+
+			if (getCirclesError) {
+				throw getCirclesError;
+			} else {							
+				return Promise.resolve(data);
+			}
+		} catch (error) {
+			console.error(error);
+			return Promise.resolve({});
+		}
+	};
+
+	const getRelatedProfiles = async (userId: string) => {
+		try {
+			// get user related profiles
+			const { data, error: getRelatedProfilesError } = await supabase.rpc(
+				"get_related_profiles",
+				{ profile_id_input: userId },
+			);							  
+
+			if (getRelatedProfilesError) {
+				throw getRelatedProfilesError;
+			} else {			  
+				return Promise.resolve(data);	  
+			}
+		} catch (error) {
+			console.error(error);
+			return Promise.resolve({});
+		}
+	};
+
+	const getRelatedCircleMappings = async (userId: string) => {
+		try {
+			// get related circle mappings
+			const { data, error: getRelatedCircleMappingsError } = await supabase.rpc(
+				"get_related_circle_mappings",
+				{ profile_id_input: userId },
+			);
+
+			if (getRelatedCircleMappingsError) {
+				throw getRelatedCircleMappingsError;
+			} else {							
+				return Promise.resolve(data);
+			}
+		} catch (error) {
+			console.error(error);
+			return Promise.resolve({});
+		}
+	};
+
+	const getRelatedProfileMappings = async (userId: string) => {
+		try {
+			// get related profile mappings
+			const { data, error: getRelatedProfileMappingsError } = await supabase.rpc(
+				"get_related_profile_mappings",
+				{ profile_id_input: userId },
+			);
+
+			if (getRelatedProfileMappingsError) {
+				throw getRelatedProfileMappingsError;
+			} else {							
+				return Promise.resolve(data);
+			}
+		} catch (error) {
+			console.error(error);
+			return Promise.resolve({});
+		}
+	};
+
 	return (
 		<CircleContext.Provider
 			value={{
 				createCircle,
 				joinCircle,
+				getCircles,
+				getRelatedProfiles,
+				getRelatedCircleMappings,
+				getRelatedProfileMappings,
 			}}
 		>
 			{children}
