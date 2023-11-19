@@ -23,6 +23,10 @@ import Animated, {
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as z from "zod";
 
+import {
+	sendPushNotification,
+	registerForPushNotificationsAsync,
+} from "@/components/Push";
 import { Button, Input, Text, Alert, ScreenIndicator } from "@/components/ui";
 import { supabase } from "@/config/supabase";
 import { useAuth } from "@/hooks/useAuth";
@@ -125,6 +129,14 @@ export function Login({ navigation }: LoginProps) {
 			const { email, password } = data;
 
 			await login(email, password);
+
+			// get expo push token
+			const expoPushToken = await registerForPushNotificationsAsync();
+
+			await supabase
+				.from("profiles")
+				.update({ expo_push_token: expoPushToken })
+				.eq("email", email);
 		} catch (error) {
 			console.log("Supabase SignIn Error: ", error);
 			alertRef.current?.showAlert({

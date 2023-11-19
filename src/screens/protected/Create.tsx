@@ -21,6 +21,10 @@ import Animated, {
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as z from "zod";
 
+import {
+	sendPushNotification,
+	registerForPushNotificationsAsync,
+} from "@/components/Push";
 import { Alert, Button, Input, Text, ScreenIndicator } from "@/components/ui";
 import { supabase } from "@/config/supabase";
 import { useCircle } from "@/hooks/useCircle";
