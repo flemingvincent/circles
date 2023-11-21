@@ -157,7 +157,6 @@ export default function Create({ navigation }: JoinProps) {
 		resolver: zodResolver(formSchema),
 	});
 
-	const [code, setInvitationCode] = useState<string | undefined>(undefined);
 
 	async function onSubmit(data: z.infer<typeof formSchema>) {
 		try {
@@ -166,10 +165,9 @@ export default function Create({ navigation }: JoinProps) {
 			console.log("profile id: ", profile!.id);
 
 			// Create a new circle
-			await createCircle(name, profile!.id).then((invitationCode) => {
-				console.log("New Invitation Code: ", invitationCode);
-				setInvitationCode(invitationCode);
-			});
+			const invitationCode = await createCircle(name, profile!.id);
+
+			console.log("New Invitation Code: ", invitationCode);
 
 			// Store selected profiles' Expo Push Tokens
 			const selectedProfileIds = selectedProfiles.map((profile) => profile.id);
@@ -186,14 +184,16 @@ export default function Create({ navigation }: JoinProps) {
 				);
 				return;
 			}
+
 			const expoPushTokens = selectedProfilesTokens.map(
 				(profile) => profile.expo_push_token,
 			);
 
 			// Send push notifications
 			for (const token of expoPushTokens) {
-				await sendPushInviteCode(token, code);
+				await sendPushInviteCode(token, invitationCode);
 			}
+
 			console.log("Push notifications sent successfully!");
 		} catch (error) {
 			console.log(error);
