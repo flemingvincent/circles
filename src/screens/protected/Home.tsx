@@ -14,8 +14,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CustomMarker } from "@/components/map/CustomMarker";
 import { CustomBackdrop, CustomHandle, HandleProps } from "@/components/sheet";
 import { Button, Text, Avatar } from "@/components/ui";
-import { useLocation } from "@/hooks/useLocation";
 import { useCircle } from "@/hooks/useCircle";
+import { useLocation } from "@/hooks/useLocation";
 import tw from "@/lib/tailwind";
 import { ProtectedStackParamList } from "@/routes/protected";
 import { useProfileStore } from "@/stores/profileStore";
@@ -292,7 +292,12 @@ let profileLocationMappings = [
 	},
 ];
 export default function Home({ navigation }: HomeProps) {
-	const { getCircles, getRelatedProfiles, getRelatedCircleMappings, getRelatedProfileMappings } = useCircle();
+	const {
+		getCircles,
+		getRelatedProfiles,
+		getRelatedCircleMappings,
+		getRelatedProfileMappings,
+	} = useCircle();
 	const { profile } = useProfileStore();
 	const insets = useSafeAreaInsets();
 
@@ -498,26 +503,30 @@ export default function Home({ navigation }: HomeProps) {
 	const getUsersCircles = async () => {
 		// TODO: Get user's circles from db.
 		//const usersCircles = dummyCircles;
-		//setUserCircles(usersCircles);		
-		try {		
-			await getCircles(profile!.id).then((dbUsersCircles) => {				
-				dummyCircles = dbUsersCircles;		
-				setUserCircles(dummyCircles);						
-			});	
-						
-			await getRelatedProfiles(profile!.id).then((dbUserRelatedProfiles) => {				
-				dummyProfiles = dbUserRelatedProfiles;							
-			});			
+		//setUserCircles(usersCircles);
+		try {
+			await getCircles(profile!.id).then((dbUsersCircles) => {
+				dummyCircles = dbUsersCircles;
+				setUserCircles(dummyCircles);
+			});
 
-			await getRelatedCircleMappings(profile!.id).then((dbRelatedCircleMappings) => {				
-				circleProfileMappings = dbRelatedCircleMappings;									
-			});	
-			
-			await getRelatedProfileMappings(profile!.id).then((dbRelatedProfileMappings) => {				
-				profileLocationMappings = dbRelatedProfileMappings;									
-			});	
+			await getRelatedProfiles(profile!.id).then((dbUserRelatedProfiles) => {
+				dummyProfiles = dbUserRelatedProfiles;
+			});
+
+			await getRelatedCircleMappings(profile!.id).then(
+				(dbRelatedCircleMappings) => {
+					circleProfileMappings = dbRelatedCircleMappings;
+				},
+			);
+
+			await getRelatedProfileMappings(profile!.id).then(
+				(dbRelatedProfileMappings) => {
+					profileLocationMappings = dbRelatedProfileMappings;
+				},
+			);
 		} catch (error) {
-			console.log(error);			
+			console.log(error);
 		}
 	};
 

@@ -11,18 +11,10 @@ export type CircleContextProps = {
 		inviteCode: string,
 		userId: string,
 	) => Promise<string | undefined>;
-	getCircles: (	 
-		userId: string,
-	) => Promise<any>;
-	getRelatedProfiles: (		
-		userId: string,
-	) => Promise<any>;
-	getRelatedCircleMappings: (		
-		userId: string,
-	) => Promise<any>;
-	getRelatedProfileMappings: (		
-		userId: string,
-	) => Promise<any>;
+	getCircles: (userId: string) => Promise<any>;
+	getRelatedProfiles: (userId: string) => Promise<any>;
+	getRelatedCircleMappings: (userId: string) => Promise<any>;
+	getRelatedProfileMappings: (userId: string) => Promise<any>;
 };
 
 export const CircleContext = createContext<CircleContextProps>({
@@ -79,35 +71,36 @@ export const CircleProvider = ({ children }: any) => {
 	const joinCircle = async (inviteCode: string, userId: string) => {
 		try {
 			const { data: invitationData, error: joinCircleError } = await supabase
-				.from("invitations")				
+				.from("invitations")
 				.select("*")
-				.ilike("invitation_code", inviteCode)				
+				.ilike("invitation_code", inviteCode)
 				.gt("expiration_date", new Date().toDateString());
 
 			if (joinCircleError) {
 				throw joinCircleError;
 			}
 
-			if(invitationData![0]){
-				const { data: circlesProfilesData, error: insertCirclesProfilesError } = await supabase
-				.from("circles_profiles")
-				.insert({
-					circle_id: invitationData![0].circle_id,
-					profile_id: userId,
-					is_user_an_admin: false,
-					share_location: true,
-				})
-				.select();
+			if (invitationData![0]) {
+				const { data: circlesProfilesData, error: insertCirclesProfilesError } =
+					await supabase
+						.from("circles_profiles")
+						.insert({
+							circle_id: invitationData![0].circle_id,
+							profile_id: userId,
+							is_user_an_admin: false,
+							share_location: true,
+						})
+						.select();
 
 				if (insertCirclesProfilesError) {
-					throw insertCirclesProfilesError;					
+					throw insertCirclesProfilesError;
 				} else {
 					// just return row id for now
 					return Promise.resolve(circlesProfilesData![0].id);
 				}
 			} else {
 				return Promise.resolve("Invalid Invitation Code");
-			}			
+			}
 		} catch (error) {
 			console.error(error);
 			return Promise.resolve("");
@@ -120,11 +113,11 @@ export const CircleProvider = ({ children }: any) => {
 			const { data, error: getCirclesError } = await supabase.rpc(
 				"get_circles",
 				{ profile_id_input: userId },
-			);													  
+			);
 
 			if (getCirclesError) {
 				throw getCirclesError;
-			} else {							
+			} else {
 				return Promise.resolve(data);
 			}
 		} catch (error) {
@@ -139,12 +132,12 @@ export const CircleProvider = ({ children }: any) => {
 			const { data, error: getRelatedProfilesError } = await supabase.rpc(
 				"get_related_profiles",
 				{ profile_id_input: userId },
-			);							  
+			);
 
 			if (getRelatedProfilesError) {
 				throw getRelatedProfilesError;
-			} else {			  
-				return Promise.resolve(data);	  
+			} else {
+				return Promise.resolve(data);
 			}
 		} catch (error) {
 			console.error(error);
@@ -162,7 +155,7 @@ export const CircleProvider = ({ children }: any) => {
 
 			if (getRelatedCircleMappingsError) {
 				throw getRelatedCircleMappingsError;
-			} else {							
+			} else {
 				return Promise.resolve(data);
 			}
 		} catch (error) {
@@ -174,14 +167,14 @@ export const CircleProvider = ({ children }: any) => {
 	const getRelatedProfileMappings = async (userId: string) => {
 		try {
 			// get related profile mappings
-			const { data, error: getRelatedProfileMappingsError } = await supabase.rpc(
-				"get_related_profile_mappings",
-				{ profile_id_input: userId },
-			);
+			const { data, error: getRelatedProfileMappingsError } =
+				await supabase.rpc("get_related_profile_mappings", {
+					profile_id_input: userId,
+				});
 
 			if (getRelatedProfileMappingsError) {
 				throw getRelatedProfileMappingsError;
-			} else {							
+			} else {
 				return Promise.resolve(data);
 			}
 		} catch (error) {
