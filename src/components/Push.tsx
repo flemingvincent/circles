@@ -1,5 +1,11 @@
+import {
+	NavigationProp,
+	useNavigation,
+	ParamListBase,
+} from "@react-navigation/native";
 import { useState, useEffect, useRef } from "react";
 import { Text, View, Button, Platform } from "react-native";
+import * as Clipboard from "expo-clipboard";
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
 import Constants from "expo-constants";
@@ -9,22 +15,25 @@ import { supabase } from "@/config/supabase";
 Notifications.setNotificationHandler({
 	handleNotification: async () => ({
 		shouldShowAlert: true,
-		shouldPlaySound: false,
+		shouldPlaySound: true,
 		shouldSetBadge: false,
 	}),
 });
 
-// Can use this function below or use Expo's Push Notification Tool from: https://expo.dev/notifications
 async function sendPushInviteCode(
 	expoPushToken: string,
 	code: string | undefined,
+	navigation: any,
 ) {
 	const message = {
 		to: expoPushToken,
 		sound: "default",
 		title: "Circles",
 		body: `You've been invited to a circle, join with this code: ${code}`,
-		//data: { someData: "goes here" },
+		priority: "high",
+		data: {
+			screen: "Join", // specify the screen you want to navigate to
+		},
 	};
 
 	await fetch("https://exp.host/--/api/v2/push/send", {
@@ -36,6 +45,8 @@ async function sendPushInviteCode(
 		},
 		body: JSON.stringify(message),
 	});
+
+	navigation.navigate("Join");
 }
 
 async function registerForPushNotificationsAsync() {
@@ -75,38 +86,44 @@ async function registerForPushNotificationsAsync() {
 
 export { sendPushInviteCode, registerForPushNotificationsAsync };
 
-export default function Push({ session }: { session: Session }) {
-	const [expoPushToken, setExpoPushToken] = useState("");
-	const [notification, setNotification] =
-		useState<Notifications.Notification>();
-	const notificationListener = useRef<Notifications.Subscription>();
-	const responseListener = useRef<Notifications.Subscription>();
+// export default function Push({ session }: { session: Session }) {
+// 	const [expoPushToken, setExpoPushToken] = useState("");
+// 	const [notification, setNotification] =
+// 		useState<Notifications.Notification>();
+// 	const notificationListener = useRef<Notifications.Subscription>();
+// 	const responseListener = useRef<Notifications.Subscription>();
 
-	useEffect(() => {
-		registerForPushNotificationsAsync().then(async (token) => {
-			setExpoPushToken(token);
-			// Upserts the expo push toke for the user
-			const { error } = await supabase
-				.from("profiles")
-				.upsert({ id: session?.user.id, expo_push_token: token });
-			console.log(error);
-		});
+// 	const navigation = useNavigation();
 
-		notificationListener.current =
-			Notifications.addNotificationReceivedListener((notification) => {
-				setNotification(notification);
-			});
+// 	useEffect(() => {
+// 		registerForPushNotificationsAsync().then(async (token) => {
+// 			setExpoPushToken(token);
+// 			// Upserts the expo push token for the user
+// 			const { error } = await supabase
+// 				.from("profiles")
+// 				.upsert({ id: session?.user.id, expo_push_token: token });
+// 			console.log(error);
+// 		});
 
-		responseListener.current =
-			Notifications.addNotificationResponseReceivedListener((response) => {
-				console.log(response);
-			});
+// 		notificationListener.current =
+// 			Notifications.addNotificationReceivedListener((notification) => {
+// 				setNotification(notification);
+// 			});
 
-		return () => {
-			Notifications.removeNotificationSubscription(
-				notificationListener.current!,
-			);
-			Notifications.removeNotificationSubscription(responseListener.current!);
-		};
-	}, []);
-}
+// 		responseListener.current =
+// 			Notifications.addNotificationResponseReceivedListener((response) => {
+// 				const screenName = response.notification.request.content.data.screen;
+
+// 				navigation.navigate("screenName");
+
+// 				console.log(response);
+// 			});
+
+// 		return () => {
+// 			Notifications.removeNotificationSubscription(
+// 				notificationListener.current!,
+// 			);
+// 			Notifications.removeNotificationSubscription(responseListener.current!);
+// 		};
+// 	}, []);
+// }

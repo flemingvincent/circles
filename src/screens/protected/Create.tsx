@@ -30,6 +30,7 @@ import { ProtectedStackParamList } from "@/routes/protected";
 import { useProfileStore, ProfileState } from "@/stores/profileStore";
 import { IProfile } from "@/types/profile";
 
+
 type JoinProps = NativeStackScreenProps<ProtectedStackParamList, "Join">;
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -191,7 +192,7 @@ export default function Create({ navigation }: JoinProps) {
 
 			// Send push notifications
 			for (const token of expoPushTokens) {
-				await sendPushInviteCode(token, invitationCode);
+				await sendPushInviteCode(token, invitationCode, navigation);
 			}
 
 			console.log("Push notifications sent successfully!");
