@@ -29,10 +29,11 @@ async function sendPushInviteCode(
 		to: expoPushToken,
 		sound: "default",
 		title: "Circles",
-		body: `You've been invited to a circle, join with this code: ${code}`,
+		body: `You've been invited to a circle, tap to join with code: ${code}`,
 		priority: "high",
 		data: {
-			screen: "Join", // specify the screen you want to navigate to
+			screen: "Join", 
+			invitationCode: code,
 		},
 	};
 
@@ -46,6 +47,7 @@ async function sendPushInviteCode(
 		body: JSON.stringify(message),
 	});
 
+	//Clipboard.setStringAsync(code || "");
 	navigation.navigate("Join");
 }
 
@@ -86,12 +88,12 @@ async function registerForPushNotificationsAsync() {
 
 export { sendPushInviteCode, registerForPushNotificationsAsync };
 
-// export default function Push({ session }: { session: Session }) {
-// 	const [expoPushToken, setExpoPushToken] = useState("");
-// 	const [notification, setNotification] =
-// 		useState<Notifications.Notification>();
-// 	const notificationListener = useRef<Notifications.Subscription>();
-// 	const responseListener = useRef<Notifications.Subscription>();
+export default function Push({ session }: { session: Session }) {
+	const [expoPushToken, setExpoPushToken] = useState("");
+	const [notification, setNotification] =
+		useState<Notifications.Notification>();
+	const notificationListener = useRef<Notifications.Subscription>();
+	const responseListener = useRef<Notifications.Subscription>();
 
 // 	const navigation = useNavigation();
 
@@ -127,3 +129,4 @@ export { sendPushInviteCode, registerForPushNotificationsAsync };
 // 		};
 // 	}, []);
 // }
+}

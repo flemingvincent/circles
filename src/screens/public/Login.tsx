@@ -23,15 +23,15 @@ import Animated, {
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as z from "zod";
 
-import {
-	sendPushNotification,
-	registerForPushNotificationsAsync,
-} from "@/components/Push";
+import { registerForPushNotificationsAsync } from "@/components/Push";
 import { Button, Input, Text, Alert, ScreenIndicator } from "@/components/ui";
 import { supabase } from "@/config/supabase";
 import { useAuth } from "@/hooks/useAuth";
 import tw from "@/lib/tailwind";
 import { PublicStackParamList } from "@/routes/public";
+import * as Notifications from "expo-notifications";
+import * as Clipboard from "expo-clipboard";
+
 
 type LoginProps = NativeStackScreenProps<PublicStackParamList, "Login">;
 
@@ -137,6 +137,15 @@ export function Login({ navigation }: LoginProps) {
 				.from("profiles")
 				.update({ expo_push_token: expoPushToken })
 				.eq("email", email);
+
+			Notifications.addNotificationResponseReceivedListener((response) => {
+				// Check if the response includes the data you sent in the push notification
+				const invitationCode =
+					response.notification.request.content.data.invitationCode;
+
+				// Copy the invitation code to the clipboard
+				Clipboard.setStringAsync(invitationCode || "");
+			});
 		} catch (error) {
 			console.log("Supabase SignIn Error: ", error);
 			alertRef.current?.showAlert({
