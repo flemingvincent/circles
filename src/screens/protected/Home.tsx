@@ -19,6 +19,10 @@ import tw from "@/lib/tailwind";
 import { ProtectedStackParamList } from "@/routes/protected";
 import { useProfileStore } from "@/stores/profileStore";
 import { Status } from "@/types/profile";
+import * as Notifications from "expo-notifications";
+import * as Clipboard from 'expo-clipboard';
+import { supabase } from "@/config/supabase";
+import { registerForPushNotificationsAsync } from "@/components/Push";
 
 type HomeProps = NativeStackScreenProps<ProtectedStackParamList, "Home">;
 
@@ -525,6 +529,30 @@ export default function Home({ navigation }: HomeProps) {
 			getUsersCircles();
 		})();
 	}, []);
+
+useEffect(() => {
+  const notificationListener = async () => {
+    const expoPushToken = await registerForPushNotificationsAsync();
+
+    await supabase
+      .from('profiles')
+      .update({ expo_push_token: expoPushToken })
+      .eq('email', profile?.email);
+
+    // Set up notification response listener
+    Notifications.addNotificationResponseReceivedListener((response) => {
+      const invitationCode =
+        response.notification.request.content.data.invitationCode;
+
+      Clipboard.setStringAsync(invitationCode || '');
+
+	  navigation.navigate("Join");
+    });
+  };
+
+  notificationListener();
+});
+
 
 	const renderCircleButtons = () => {
 		return (

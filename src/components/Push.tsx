@@ -39,9 +39,6 @@ async function sendPushInviteCode(
 		},
 		body: JSON.stringify(message),
 	});
-
-	//Clipboard.setStringAsync(code || "");
-	//navigation.navigate("Join");
 }
 
 async function registerForPushNotificationsAsync() {

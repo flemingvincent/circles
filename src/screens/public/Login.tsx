@@ -128,23 +128,6 @@ export function Login({ navigation }: LoginProps) {
 			const { email, password } = data;
 
 			await login(email, password);
-
-			// get expo push token
-			const expoPushToken = await registerForPushNotificationsAsync();
-
-			await supabase
-				.from("profiles")
-				.update({ expo_push_token: expoPushToken })
-				.eq("email", email);
-
-			Notifications.addNotificationResponseReceivedListener((response) => {
-				// Check if the response includes the data you sent in the push notification
-				const invitationCode =
-					response.notification.request.content.data.invitationCode;
-
-				// Copy the invitation code to the clipboard
-				Clipboard.setStringAsync(invitationCode || "");
-			});
 		} catch (error) {
 			console.log("Supabase SignIn Error: ", error);
 			alertRef.current?.showAlert({
