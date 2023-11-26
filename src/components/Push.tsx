@@ -1,16 +1,7 @@
-import {
-	NavigationProp,
-	useNavigation,
-	ParamListBase,
-} from "@react-navigation/native";
-import { useState, useEffect, useRef } from "react";
-import { Text, View, Button, Platform } from "react-native";
-import * as Clipboard from "expo-clipboard";
+import Constants from "expo-constants";
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
-import Constants from "expo-constants";
-import { Session } from "@supabase/supabase-js";
-import { supabase } from "@/config/supabase";
+import { Platform } from "react-native";
 
 Notifications.setNotificationHandler({
 	handleNotification: async () => ({
@@ -32,7 +23,7 @@ async function sendPushInviteCode(
 		body: `You've been invited to a circle, tap to join with code: ${code}`,
 		priority: "high",
 		data: {
-			screen: "Join", 
+			screen: "Join",
 			invitationCode: code,
 		},
 	};
@@ -87,46 +78,3 @@ async function registerForPushNotificationsAsync() {
 }
 
 export { sendPushInviteCode, registerForPushNotificationsAsync };
-
-export default function Push({ session }: { session: Session }) {
-	const [expoPushToken, setExpoPushToken] = useState("");
-	const [notification, setNotification] =
-		useState<Notifications.Notification>();
-	const notificationListener = useRef<Notifications.Subscription>();
-	const responseListener = useRef<Notifications.Subscription>();
-
-// 	const navigation = useNavigation();
-
-// 	useEffect(() => {
-// 		registerForPushNotificationsAsync().then(async (token) => {
-// 			setExpoPushToken(token);
-// 			// Upserts the expo push token for the user
-// 			const { error } = await supabase
-// 				.from("profiles")
-// 				.upsert({ id: session?.user.id, expo_push_token: token });
-// 			console.log(error);
-// 		});
-
-// 		notificationListener.current =
-// 			Notifications.addNotificationReceivedListener((notification) => {
-// 				setNotification(notification);
-// 			});
-
-// 		responseListener.current =
-// 			Notifications.addNotificationResponseReceivedListener((response) => {
-// 				const screenName = response.notification.request.content.data.screen;
-
-// 				navigation.navigate("screenName");
-
-// 				console.log(response);
-// 			});
-
-// 		return () => {
-// 			Notifications.removeNotificationSubscription(
-// 				notificationListener.current!,
-// 			);
-// 			Notifications.removeNotificationSubscription(responseListener.current!);
-// 		};
-// 	}, []);
-// }
-}

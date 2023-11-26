@@ -96,7 +96,7 @@ export default function Join({ navigation }: JoinProps) {
 								value={value}
 								onChangeText={onChange}
 								maxLength={6}
-								keyboardType="default"								
+								keyboardType="default"
 							/>
 						)}
 					/>

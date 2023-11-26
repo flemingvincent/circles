@@ -30,7 +30,6 @@ import { ProtectedStackParamList } from "@/routes/protected";
 import { useProfileStore, ProfileState } from "@/stores/profileStore";
 import { IProfile } from "@/types/profile";
 
-
 type JoinProps = NativeStackScreenProps<ProtectedStackParamList, "Join">;
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -100,8 +99,9 @@ export default function Create({ navigation }: JoinProps) {
 	const handleSearch = (query: string) => {
 		setQuery(query);
 		// filter by username
-		const filteredProfiles = fetchedProfiles.filter((profile) =>
-			profile.username.toLowerCase().includes(query.toLowerCase()),
+		const filteredProfiles = fetchedProfiles.filter(
+			(profile) =>
+				profile.username?.toLowerCase().includes(query.toLowerCase()),
 		);
 		setSearchedProfiles(filteredProfiles);
 	};
@@ -157,7 +157,6 @@ export default function Create({ navigation }: JoinProps) {
 	} = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
 	});
-
 
 	async function onSubmit(data: z.infer<typeof formSchema>) {
 		try {
