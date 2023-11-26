@@ -1,4 +1,3 @@
-import Clipboard from "expo-clipboard";
 import Constants from "expo-constants";
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
@@ -6,10 +5,6 @@ import { Platform } from "react-native";
 
 Notifications.setNotificationHandler({
 	handleNotification: async (notification) => {
-		const invitationCode = notification.request.content.data?.invitationCode;
-
-		// Copy the invitation code to the clipboard
-		await Clipboard.setStringAsync(invitationCode || "");
 
 		return {
 			shouldShowAlert: true,
@@ -22,7 +17,6 @@ Notifications.setNotificationHandler({
 async function sendPushInviteCode(
 	expoPushToken: string,
 	code: string | undefined,
-	navigation: any,
 ) {
 	const message = {
 		to: expoPushToken,
@@ -47,7 +41,7 @@ async function sendPushInviteCode(
 	});
 
 	//Clipboard.setStringAsync(code || "");
-	navigation.navigate("Join");
+	//navigation.navigate("Join");
 }
 
 async function registerForPushNotificationsAsync() {

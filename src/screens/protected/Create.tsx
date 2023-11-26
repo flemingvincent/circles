@@ -191,10 +191,12 @@ export default function Create({ navigation }: JoinProps) {
 
 			// Send push notifications
 			for (const token of expoPushTokens) {
-				await sendPushInviteCode(token, invitationCode, navigation);
+				await sendPushInviteCode(token, invitationCode);
 			}
 
 			console.log("Push notifications sent successfully!");
+			
+			navigation.navigate("Home");
 		} catch (error) {
 			console.log(error);
 			alertRef.current?.showAlert({
