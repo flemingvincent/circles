@@ -21,6 +21,7 @@ import Animated, {
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as z from "zod";
 
+import { sendPushInviteCode } from "@/components/Push";
 import { Alert, Button, Input, Text, ScreenIndicator } from "@/components/ui";
 import { supabase } from "@/config/supabase";
 import { useCircle } from "@/hooks/useCircle";
@@ -98,8 +99,9 @@ export default function Create({ navigation }: JoinProps) {
 	const handleSearch = (query: string) => {
 		setQuery(query);
 		// filter by username
-		const filteredProfiles = fetchedProfiles.filter((profile) =>
-			profile.username.toLowerCase().includes(query.toLowerCase()),
+		const filteredProfiles = fetchedProfiles.filter(
+			(profile) =>
+				profile.username?.toLowerCase().includes(query.toLowerCase()),
 		);
 		setSearchedProfiles(filteredProfiles);
 	};
@@ -163,12 +165,44 @@ export default function Create({ navigation }: JoinProps) {
 			console.log("profile id: ", profile!.id);
 
 			// Create a new circle
-			await createCircle(name, profile!.id).then((invitationCode) => {
-				console.log("New Invitation Code: ", invitationCode);
+			const invitationCode = await createCircle(name, profile!.id);
+
+			console.log("New Invitation Code: ", invitationCode);
+
+			// Store selected profiles' Expo Push Tokens
+			const selectedProfileIds = selectedProfiles.map((profile) => profile.id);
+			const { data: selectedProfilesTokens, error: selectedProfilesError } =
+				await supabase
+					.from("profiles")
+					.select("expo_push_token")
+					.in("id", selectedProfileIds);
+
+			if (selectedProfilesError) {
+				console.error(
+					"Error fetching Expo Push Tokens:",
+					selectedProfilesError,
+				);
+				return;
+			}
+
+			const expoPushTokens = selectedProfilesTokens.map(
+				(profile) => profile.expo_push_token,
+			);
+
+			// Send push notifications
+			for (const token of expoPushTokens) {
+				await sendPushInviteCode(token, invitationCode);
+			}
+
+			alertRef.current?.showAlert({
+				title: "Success!",
+				message: "You have successfully created a circle.",
+				variant: "success",
 			});
 
-			// TODO: Send invites to selected profiles
-			console.log("Send invites to selected profiles here!");
+			setTimeout(() => {
+				navigation.navigate("Home");
+			}, 1000);
 		} catch (error) {
 			console.log(error);
 			alertRef.current?.showAlert({

@@ -63,35 +63,36 @@ export const CircleProvider = ({ children }: any) => {
 	const joinCircle = async (inviteCode: string, userId: string) => {
 		try {
 			const { data: invitationData, error: joinCircleError } = await supabase
-				.from("invitations")				
+				.from("invitations")
 				.select("*")
-				.ilike("invitation_code", inviteCode)				
+				.ilike("invitation_code", inviteCode)
 				.gt("expiration_date", new Date().toDateString());
 
 			if (joinCircleError) {
 				throw joinCircleError;
 			}
 
-			if(invitationData![0]){
-				const { data: circlesProfilesData, error: insertCirclesProfilesError } = await supabase
-				.from("circles_profiles")
-				.insert({
-					circle_id: invitationData![0].circle_id,
-					profile_id: userId,
-					is_user_an_admin: false,
-					share_location: true,
-				})
-				.select();
+			if (invitationData![0]) {
+				const { data: circlesProfilesData, error: insertCirclesProfilesError } =
+					await supabase
+						.from("circles_profiles")
+						.insert({
+							circle_id: invitationData![0].circle_id,
+							profile_id: userId,
+							is_user_an_admin: false,
+							share_location: true,
+						})
+						.select();
 
 				if (insertCirclesProfilesError) {
-					throw insertCirclesProfilesError;					
+					throw insertCirclesProfilesError;
 				} else {
 					// just return row id for now
 					return Promise.resolve(circlesProfilesData![0].id);
 				}
 			} else {
 				return Promise.resolve("Invalid Invitation Code");
-			}			
+			}
 		} catch (error) {
 			console.error(error);
 			return Promise.resolve("");
