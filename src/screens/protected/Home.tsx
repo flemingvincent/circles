@@ -17,6 +17,7 @@ import { registerForPushNotificationsAsync } from "@/components/Push";
 import { CustomMarker } from "@/components/map/CustomMarker";
 import { CustomBackdrop, CustomHandle, HandleProps } from "@/components/sheet";
 import { Button, Text, Avatar } from "@/components/ui";
+import { useCircle } from "@/hooks/useCircle";
 import { supabase } from "@/config/supabase";
 import { useLocation } from "@/hooks/useLocation";
 import tw from "@/lib/tailwind";
@@ -27,7 +28,7 @@ import { Status } from "@/types/profile";
 type HomeProps = NativeStackScreenProps<ProtectedStackParamList, "Home">;
 
 // TODO: Remove these dummy datas when we hook it up to the db.
-const dummyCircles = [
+let dummyCircles = [
 	{ key: "1", value: "Family" },
 	{ key: "2", value: "OS Study Group" },
 	{ key: "3", value: "DSA Study Group" },
@@ -36,7 +37,7 @@ const dummyCircles = [
 ];
 const dummyStatus1: Status = "active";
 const dummyStatus2: Status = "away";
-const dummyProfiles = [
+let dummyProfiles = [
 	{
 		avatar_url:
 			"https://cdn.britannica.com/79/232779-050-6B0411D7/German-Shepherd-dog-Alsatian.jpg",
@@ -147,22 +148,22 @@ const dummyProfiles = [
 		username: "test11",
 	},
 ];
-const circleProfileMappings = [
-	{ profileId: "1", circleKey: "1" },
-	{ profileId: "2", circleKey: "2" },
-	{ profileId: "3", circleKey: "3" },
-	{ profileId: "4", circleKey: "4" },
-	{ profileId: "5", circleKey: "5" },
-	{ profileId: "6", circleKey: "1" },
-	{ profileId: "7", circleKey: "2" },
-	{ profileId: "8", circleKey: "3" },
-	{ profileId: "9", circleKey: "4" },
-	{ profileId: "10", circleKey: "5" },
-	{ profileId: "11", circleKey: "1" },
+let circleProfileMappings = [
+	{ profileid: "1", circlekey: "1" },
+	{ profileid: "2", circlekey: "2" },
+	{ profileid: "3", circlekey: "3" },
+	{ profileid: "4", circlekey: "4" },
+	{ profileid: "5", circlekey: "5" },
+	{ profileid: "6", circlekey: "1" },
+	{ profileid: "7", circlekey: "2" },
+	{ profileid: "8", circlekey: "3" },
+	{ profileid: "9", circlekey: "4" },
+	{ profileid: "10", circlekey: "5" },
+	{ profileid: "11", circlekey: "1" },
 ];
-const profileLocationMappings = [
+let profileLocationMappings = [
 	{
-		profileId: "1",
+		profileid: "1",
 		location: {
 			accuracy: 35,
 			altitude: 54.14205741882325,
@@ -174,7 +175,7 @@ const profileLocationMappings = [
 		},
 	},
 	{
-		profileId: "2",
+		profileid: "2",
 		location: {
 			accuracy: 35,
 			altitude: 54.14205741882326,
@@ -186,7 +187,7 @@ const profileLocationMappings = [
 		},
 	},
 	{
-		profileId: "3",
+		profileid: "3",
 		location: {
 			accuracy: 35,
 			altitude: 54.14205741882327,
@@ -198,7 +199,7 @@ const profileLocationMappings = [
 		},
 	},
 	{
-		profileId: "4",
+		profileid: "4",
 		location: {
 			accuracy: 35,
 			altitude: 54.14205741882328,
@@ -210,7 +211,7 @@ const profileLocationMappings = [
 		},
 	},
 	{
-		profileId: "5",
+		profileid: "5",
 		location: {
 			accuracy: 35,
 			altitude: 54.14205741882329,
@@ -222,7 +223,7 @@ const profileLocationMappings = [
 		},
 	},
 	{
-		profileId: "6",
+		profileid: "6",
 		location: {
 			accuracy: 35,
 			altitude: 54.1420574188233,
@@ -234,7 +235,7 @@ const profileLocationMappings = [
 		},
 	},
 	{
-		profileId: "7",
+		profileid: "7",
 		location: {
 			accuracy: 35,
 			altitude: 54.14205741882323,
@@ -246,7 +247,7 @@ const profileLocationMappings = [
 		},
 	},
 	{
-		profileId: "8",
+		profileid: "8",
 		location: {
 			accuracy: 35,
 			altitude: 54.14205741882322,
@@ -258,7 +259,7 @@ const profileLocationMappings = [
 		},
 	},
 	{
-		profileId: "9",
+		profileid: "9",
 		location: {
 			accuracy: 35,
 			altitude: 54.14205741882321,
@@ -270,7 +271,7 @@ const profileLocationMappings = [
 		},
 	},
 	{
-		profileId: "10",
+		profileid: "10",
 		location: {
 			accuracy: 35,
 			altitude: 54.1420574188232,
@@ -282,7 +283,7 @@ const profileLocationMappings = [
 		},
 	},
 	{
-		profileId: "11",
+		profileid: "11",
 		location: {
 			accuracy: 35,
 			altitude: 54.14205741882319,
@@ -295,6 +296,12 @@ const profileLocationMappings = [
 	},
 ];
 export default function Home({ navigation }: HomeProps) {
+	const {
+		getCircles,
+		getRelatedProfiles,
+		getRelatedCircleMappings,
+		getRelatedProfileMappings,
+	} = useCircle();
 	const { profile } = useProfileStore();
 	const insets = useSafeAreaInsets();
 
@@ -442,7 +449,7 @@ export default function Home({ navigation }: HomeProps) {
 			if (user) {
 				// TODO: Get a user's location from the db
 				const userLocation = profileLocationMappings.find(
-					(mapping) => mapping.profileId === user.id,
+					(mapping) => mapping.profileid === user.id,
 				);
 				usersInCircle.push(
 					<CustomMarker
@@ -499,8 +506,32 @@ export default function Home({ navigation }: HomeProps) {
 	const [userCircles, setUserCircles] = useState<Circle[]>([]);
 	const getUsersCircles = async () => {
 		// TODO: Get user's circles from db.
-		const usersCircles = dummyCircles;
-		setUserCircles(usersCircles);
+		//const usersCircles = dummyCircles;
+		//setUserCircles(usersCircles);
+		try {
+			await getCircles(profile!.id).then((dbUsersCircles) => {
+				dummyCircles = dbUsersCircles;
+				setUserCircles(dummyCircles);
+			});
+
+			await getRelatedProfiles(profile!.id).then((dbUserRelatedProfiles) => {
+				dummyProfiles = dbUserRelatedProfiles;
+			});
+
+			await getRelatedCircleMappings(profile!.id).then(
+				(dbRelatedCircleMappings) => {
+					circleProfileMappings = dbRelatedCircleMappings;
+				},
+			);
+
+			await getRelatedProfileMappings(profile!.id).then(
+				(dbRelatedProfileMappings) => {
+					profileLocationMappings = dbRelatedProfileMappings;
+				},
+			);
+		} catch (error) {
+			console.log(error);
+		}
 	};
 
 	const updateProfileIdsInCurrentCircle = async () => {
@@ -510,8 +541,8 @@ export default function Home({ navigation }: HomeProps) {
 
 		// TODO: Get all the ids of all the profiles that are currently in `circleKey` from the db
 		const profilesInCircle = circleProfileMappings
-			.filter((mapping) => mapping.circleKey === circleKey)
-			.map((obj) => obj.profileId);
+			.filter((mapping) => mapping.circlekey === circleKey)
+			.map((obj) => obj.profileid);
 
 		setProfileIdsInCurrentCircle(profilesInCircle);
 	};
