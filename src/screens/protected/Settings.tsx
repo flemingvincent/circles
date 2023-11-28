@@ -46,6 +46,7 @@ const selectionOptions = [
 	"Password",
 	"Profile Picture",
 	"Update Status",
+	"Notifications",
 ];
 
 const statusOptions = ["active", "away", "busy", "offline"];
@@ -591,6 +592,31 @@ export default function Settings({ navigation }: SettingsProps) {
 							/>
 						</TouchableOpacity>
 						<TouchableOpacity
+							style={tw`flex flex-row justify-between w-full p-4 border-b border-b-border`}
+							onPress={() => {
+								handleScrollForward();
+								setSelectionIndex(6);
+							}}
+						>
+							<Text weight="semibold">Notifications</Text>
+							{/* <Image
+								style={tw`w-6 h-6`}
+								source={require("@/assets/icons/chevron-right-gray.svg")}
+							/> */}
+							<View
+								style={tw`w-6 h-6 bg-error rounded-full items-center justify-center`}
+							>
+								{/* TODO: Fetch amount of users notifications and display them here */}
+								<Text
+									style={tw`text-white`}
+									variant="footnote"
+									weight="semibold"
+								>
+									1
+								</Text>
+							</View>
+						</TouchableOpacity>
+						<TouchableOpacity
 							style={tw`flex flex-row justify-between w-full p-4`}
 							onPress={() => {
 								logout();
@@ -602,34 +628,37 @@ export default function Settings({ navigation }: SettingsProps) {
 								source={require("@/assets/icons/logout-red.svg")}
 							/>
 						</TouchableOpacity>
-						<Text
-							style={tw`text-content-secondary mt-6 px-4`}
-							variant="caption1"
-							weight="semibold"
-						>
-							PERMISSIONS
-						</Text>
-						<TouchableOpacity
-							style={tw`flex flex-row justify-between w-full p-4 border-b border-b-border`}
-						>
-							<Text weight="semibold">Location</Text>
-							<Image
-								style={tw`w-6 h-6`}
-								source={require("@/assets/icons/ellipsis-vertical.svg")}
-							/>
-						</TouchableOpacity>
-						<TouchableOpacity
-							style={tw`flex flex-row justify-between w-full p-4`}
-						>
-							<Text weight="semibold">Notifications</Text>
-							<Image
-								style={tw`w-6 h-6`}
-								source={require("@/assets/icons/ellipsis-vertical.svg")}
-							/>
-						</TouchableOpacity>
 					</View>
 
 					{/* Screen Two. Technically, four screens, but only the selected one is shown */}
+
+					<View
+						style={tw`flex items-center justify-center w-[${SCREEN_WIDTH}px] px-12 pt-6 ${
+							selectionIndex === 6 ? "" : "hidden"
+						}`}
+					>
+						<ScrollView style={tw`flex-1 w-full`}>
+							{/* TODO: Fetch amount of users notifications and display them here */}
+							<TouchableOpacity
+								style={tw`flex flex-col mb-4`}
+								onPress={() => {
+									// TODO: After navigation, remove notification
+									navigation.replace("Join");
+								}}
+							>
+								<Text variant="headline" weight="semibold">
+									You've been invited to a circle!
+								</Text>
+								<Text
+									style={tw`text-content-secondary`}
+									variant="subheadline"
+									weight="medium"
+								>
+									Tap to join with code: ABCDE
+								</Text>
+							</TouchableOpacity>
+						</ScrollView>
+					</View>
 
 					{/* Status */}
 					<View

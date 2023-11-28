@@ -44,6 +44,16 @@ export default function Join({ navigation }: JoinProps) {
 			await joinCircle(code, profile!.id).then((circlesprofilesid) => {
 				console.log("New circlesprofiles id: ", circlesprofilesid);
 			});
+
+			alertRef.current?.showAlert({
+				title: "Success!",
+				message: "You have successfully joined a circle.",
+				variant: "success",
+			});
+
+			setTimeout(() => {
+				navigation.navigate("Home");
+			}, 1000);
 		} catch (error) {
 			console.log(error);
 			alertRef.current?.showAlert({
@@ -104,7 +114,7 @@ export default function Join({ navigation }: JoinProps) {
 				<View style={tw`px-12`}>
 					<Button
 						variant="primary"
-						label="Continue"
+						label="Join"
 						style={tw`mb-4`}
 						loading={isSubmitting}
 						onPress={handleSubmit(onSubmit)}
