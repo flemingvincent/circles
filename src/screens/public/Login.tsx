@@ -1,8 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import * as Clipboard from "expo-clipboard";
 import { Image } from "expo-image";
-import * as Notifications from "expo-notifications";
 import { useCallback, useRef, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import {
@@ -25,7 +23,6 @@ import Animated, {
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as z from "zod";
 
-import { registerForPushNotificationsAsync } from "@/components/Push";
 import { Button, Input, Text, Alert, ScreenIndicator } from "@/components/ui";
 import { supabase } from "@/config/supabase";
 import { useAuth } from "@/hooks/useAuth";

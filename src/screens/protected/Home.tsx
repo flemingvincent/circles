@@ -3,26 +3,26 @@ import BottomSheet, {
 	BottomSheetView,
 } from "@gorhom/bottom-sheet";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import * as Clipboard from "expo-clipboard";
 import { Image } from "expo-image";
 import * as Location from "expo-location";
+import * as Notifications from "expo-notifications";
 import { SetStateAction, useEffect, useMemo, useRef, useState } from "react";
 import { Platform, View, Linking, AppState } from "react-native";
 import { SelectList } from "react-native-dropdown-select-list";
 import MapView from "react-native-maps";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { registerForPushNotificationsAsync } from "@/components/Push";
 import { CustomMarker } from "@/components/map/CustomMarker";
 import { CustomBackdrop, CustomHandle, HandleProps } from "@/components/sheet";
 import { Button, Text, Avatar } from "@/components/ui";
+import { supabase } from "@/config/supabase";
 import { useLocation } from "@/hooks/useLocation";
 import tw from "@/lib/tailwind";
 import { ProtectedStackParamList } from "@/routes/protected";
 import { useProfileStore } from "@/stores/profileStore";
 import { Status } from "@/types/profile";
-import * as Notifications from "expo-notifications";
-import * as Clipboard from 'expo-clipboard';
-import { supabase } from "@/config/supabase";
-import { registerForPushNotificationsAsync } from "@/components/Push";
 
 type HomeProps = NativeStackScreenProps<ProtectedStackParamList, "Home">;
 
@@ -530,29 +530,28 @@ export default function Home({ navigation }: HomeProps) {
 		})();
 	}, []);
 
-useEffect(() => {
-  const notificationListener = async () => {
-    const expoPushToken = await registerForPushNotificationsAsync();
+	useEffect(() => {
+		const notificationListener = async () => {
+			const expoPushToken = await registerForPushNotificationsAsync();
 
-    await supabase
-      .from('profiles')
-      .update({ expo_push_token: expoPushToken })
-      .eq('email', profile?.email);
+			await supabase
+				.from("profiles")
+				.update({ expo_push_token: expoPushToken })
+				.eq("email", profile?.email);
 
-    // Set up notification response listener
-    Notifications.addNotificationResponseReceivedListener((response) => {
-      const invitationCode =
-        response.notification.request.content.data.invitationCode;
+			// Set up notification response listener
+			Notifications.addNotificationResponseReceivedListener((response) => {
+				const invitationCode =
+					response.notification.request.content.data.invitationCode;
 
-      Clipboard.setStringAsync(invitationCode || '');
+				Clipboard.setStringAsync(invitationCode || "");
 
-	  navigation.navigate("Join");
-    });
-  };
+				navigation.navigate("Join");
+			});
+		};
 
-  notificationListener();
-});
-
+		notificationListener();
+	});
 
 	const renderCircleButtons = () => {
 		return (

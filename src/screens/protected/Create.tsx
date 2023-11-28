@@ -194,9 +194,15 @@ export default function Create({ navigation }: JoinProps) {
 				await sendPushInviteCode(token, invitationCode);
 			}
 
-			console.log("Push notifications sent successfully!");
-			
-			navigation.navigate("Home");
+			alertRef.current?.showAlert({
+				title: "Success!",
+				message: "You have successfully created a circle.",
+				variant: "success",
+			});
+
+			setTimeout(() => {
+				navigation.navigate("Home");
+			}, 1000);
 		} catch (error) {
 			console.log(error);
 			alertRef.current?.showAlert({
