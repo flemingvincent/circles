@@ -471,7 +471,7 @@ export default function Home({ navigation }: HomeProps) {
 			// TODO: Get a user's information, given their id, from the db
 			const user = dummyProfiles.find((profile) => profile.id === profileId);
 
-			if (user) {
+			if (user && user.id !== profile?.id) {
 				// TODO: Get a user's location from the db
 				usersInCircle.push(
 					<View style={tw`mt-4`}>
@@ -494,7 +494,13 @@ export default function Home({ navigation }: HomeProps) {
 				);
 			}
 		});
-
+		if (usersInCircle.length === 0) {
+			return (
+				<View style={tw`mt-4`}>
+					<Text variant="caption2">You are the only one in this circle!</Text>
+				</View>
+			);
+		}
 		return usersInCircle;
 	};
 
@@ -553,6 +559,21 @@ export default function Home({ navigation }: HomeProps) {
 		updateProfileIdsInCurrentCircle();
 	}, [selectedCircle]);
 
+	// Fetch all the user's circles from db if a new circle has been created.
+	const newCirclePossiblyAdded = useRef(false);
+	const newCircleAdded = navigation.getState().routes[0].params?.newCircleAdded;
+	const updateStateIfNewlyCreatedCircle = async () => {
+		if (
+			newCircleAdded !== null &&
+			newCircleAdded !== undefined &&
+			newCirclePossiblyAdded.current === true
+		) {
+			newCirclePossiblyAdded.current = false;
+			await getUsersCircles();
+		}
+	};
+	updateStateIfNewlyCreatedCircle();
+
 	useEffect(() => {
 		(async () => {
 			checkPermissionsAndUpdateScreen();
@@ -591,6 +612,7 @@ export default function Home({ navigation }: HomeProps) {
 					variant="primary"
 					label="Create a Circle"
 					onPress={() => {
+						newCirclePossiblyAdded.current = true;
 						navigation.navigate("Create");
 					}}
 				/>

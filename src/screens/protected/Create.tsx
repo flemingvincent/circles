@@ -201,7 +201,7 @@ export default function Create({ navigation }: JoinProps) {
 			});
 
 			setTimeout(() => {
-				navigation.navigate("Home");
+				navigation.navigate("Home", { newCircleAdded: name });
 			}, 1000);
 		} catch (error) {
 			console.log(error);
