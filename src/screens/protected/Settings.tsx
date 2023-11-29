@@ -42,29 +42,23 @@ type SettingsProps = NativeStackScreenProps<
 const selectionOptions = [
 	"Settings",
 	"Username",
-	"Email",
 	"Password",
 	"Profile Picture",
 	"Update Status",
-	"Notifications",
 ];
 
 const statusOptions = ["active", "away", "busy", "offline"];
 
 export default function Settings({ navigation }: SettingsProps) {
-	const { updateUsername, updateUserEmail, updateUserPassword, logout } =
-		useAuth();
+	const { updateUsername, updateUserPassword, logout } = useAuth();
 	const [selectionIndex, setSelectionIndex] = useState(0);
 	const { profile, setProfile }: ProfileState = useProfileStore();
-	const { checkUsernameAvailability, checkEmailAvailability } = useAuth();
+	const { checkUsernameAvailability } = useAuth();
 	const textInputRef = useRef<TextInput>(null);
 
 	const [isUsernameAvailable, setIsUsernameAvailable] = useState<
 		boolean | null
 	>(null);
-	const [isEmailAvailable, setIsEmailAvailable] = useState<boolean | null>(
-		null,
-	);
 	const [isPasswordVisible, setIsPasswordVisible] = useState<boolean>(false);
 	const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] =
 		useState<boolean>(false);
@@ -102,26 +96,6 @@ export default function Settings({ navigation }: SettingsProps) {
 		});
 	}
 
-	// Triggers the validation of the email field.
-	// If the email is valid, it checks if it's available.
-	// If the email is available, it sets the state to true.
-	// If the email is not available, it sets the state to false.
-	async function updateEmailAvailability() {
-		trigger("email").then((isValid) => {
-			if (isValid) {
-				if (getValues("email") === profile?.email) {
-					setIsEmailAvailable(true);
-				} else {
-					checkEmailAvailability(getValues("email")).then(
-						(isEmailAvailable) => {
-							setIsEmailAvailable(isEmailAvailable);
-						},
-					);
-				}
-			}
-		});
-	}
-
 	async function onSubmit() {
 		// If the user is on the username screen.
 		if (selectionIndex === 1) {
@@ -151,36 +125,8 @@ export default function Settings({ navigation }: SettingsProps) {
 					}
 				}
 			});
-			// If the user is on the email screen.
-		} else if (selectionIndex === 2) {
-			// Trigger the validation of the email field.
-			trigger("email").then((isValid) => {
-				// If the email is valid.
-				if (isValid) {
-					// Update the email. Display a success message. Go back to the previous screen.
-					try {
-						updateUserEmail(getValues("email"));
-
-						alertRef.current?.showAlert({
-							title: "Success!",
-							message: "Your email has been updated.",
-							variant: "success",
-						});
-
-						handleScrollBackward();
-					} catch (error) {
-						// @ts-ignore
-						alertRef.current?.showAlert({
-							title: "Oops!",
-							// @ts-ignore
-							message: error.message + ".",
-							variant: "error",
-						});
-					}
-				}
-			});
 			// If the user is on the password screen.
-		} else if (selectionIndex === 3) {
+		} else if (selectionIndex === 2) {
 			// Trigger the validation of the password field.
 			trigger("password").then((isValid) => {
 				// If the password is valid.
@@ -218,11 +164,6 @@ export default function Settings({ navigation }: SettingsProps) {
 
 	const formSchema = z
 		.object({
-			email: z
-				.string({
-					required_error: "Oops! An email is required.",
-				})
-				.email("Oops! That's not an email."),
 			password: z
 				.string({
 					required_error: "Oops! A password is required.",
@@ -235,20 +176,6 @@ export default function Settings({ navigation }: SettingsProps) {
 			confirmPassword: z.string({
 				required_error: "Oops! A password is required.",
 			}),
-			firstName: z
-				.string({
-					required_error: "Oops! A first name is required.",
-				})
-				.trim()
-				.regex(/^[a-zA-Z -]+$/, "Oops! That's not a valid name.")
-				.transform((value) => value.replace(/\b\w/g, (c) => c.toUpperCase())),
-			lastName: z
-				.string({
-					required_error: "Oops! A last name is required.",
-				})
-				.trim()
-				.regex(/^[a-zA-Z -]+$/, "Oops! That's not a valid name.")
-				.transform((value) => value.replace(/\b\w/g, (c) => c.toUpperCase())),
 			username: z
 				.string({
 					required_error: "Oops! A username is required.",
@@ -536,27 +463,8 @@ export default function Settings({ navigation }: SettingsProps) {
 						<TouchableOpacity
 							style={tw`flex flex-row justify-between w-full p-4 border-b border-b-border`}
 							onPress={() => {
-								// Set the index so we know to move horizontally and update the title.
+								handleScrollForward();
 								setSelectionIndex(2);
-								// Set the email value of the form.
-								setValue("email", profile?.email!);
-								// Check the email availability right away.
-								updateEmailAvailability();
-								// Finally, go to the screen.
-								handleScrollForward();
-							}}
-						>
-							<Text weight="semibold">Email</Text>
-							<Image
-								style={tw`w-6 h-6`}
-								source={require("@/assets/icons/chevron-right-gray.svg")}
-							/>
-						</TouchableOpacity>
-						<TouchableOpacity
-							style={tw`flex flex-row justify-between w-full p-4 border-b border-b-border`}
-							onPress={() => {
-								handleScrollForward();
-								setSelectionIndex(3);
 							}}
 						>
 							<Text weight="semibold">Password</Text>
@@ -569,7 +477,7 @@ export default function Settings({ navigation }: SettingsProps) {
 							style={tw`flex flex-row justify-between w-full p-4 border-b border-b-border`}
 							onPress={() => {
 								handleScrollForward();
-								setSelectionIndex(4);
+								setSelectionIndex(3);
 							}}
 						>
 							<Text weight="semibold">Profile Picture</Text>
@@ -582,7 +490,7 @@ export default function Settings({ navigation }: SettingsProps) {
 							style={tw`flex flex-row justify-between w-full p-4 border-b border-b-border`}
 							onPress={() => {
 								handleScrollForward();
-								setSelectionIndex(5);
+								setSelectionIndex(4);
 							}}
 						>
 							<Text weight="semibold">Update Status</Text>
@@ -590,31 +498,6 @@ export default function Settings({ navigation }: SettingsProps) {
 								style={tw`w-6 h-6`}
 								source={require("@/assets/icons/chevron-right-gray.svg")}
 							/>
-						</TouchableOpacity>
-						<TouchableOpacity
-							style={tw`flex flex-row justify-between w-full p-4 border-b border-b-border`}
-							onPress={() => {
-								handleScrollForward();
-								setSelectionIndex(6);
-							}}
-						>
-							<Text weight="semibold">Notifications</Text>
-							{/* <Image
-								style={tw`w-6 h-6`}
-								source={require("@/assets/icons/chevron-right-gray.svg")}
-							/> */}
-							<View
-								style={tw`w-6 h-6 bg-error rounded-full items-center justify-center`}
-							>
-								{/* TODO: Fetch amount of users notifications and display them here */}
-								<Text
-									style={tw`text-white`}
-									variant="footnote"
-									weight="semibold"
-								>
-									1
-								</Text>
-							</View>
 						</TouchableOpacity>
 						<TouchableOpacity
 							style={tw`flex flex-row justify-between w-full p-4`}
@@ -632,38 +515,10 @@ export default function Settings({ navigation }: SettingsProps) {
 
 					{/* Screen Two. Technically, four screens, but only the selected one is shown */}
 
-					<View
-						style={tw`flex items-center justify-center w-[${SCREEN_WIDTH}px] px-12 pt-6 ${
-							selectionIndex === 6 ? "" : "hidden"
-						}`}
-					>
-						<ScrollView style={tw`flex-1 w-full`}>
-							{/* TODO: Fetch amount of users notifications and display them here */}
-							<TouchableOpacity
-								style={tw`flex flex-col mb-4`}
-								onPress={() => {
-									// TODO: After navigation, remove notification
-									navigation.replace("Join");
-								}}
-							>
-								<Text variant="headline" weight="semibold">
-									You've been invited to a circle!
-								</Text>
-								<Text
-									style={tw`text-content-secondary`}
-									variant="subheadline"
-									weight="medium"
-								>
-									Tap to join with code: ABCDE
-								</Text>
-							</TouchableOpacity>
-						</ScrollView>
-					</View>
-
 					{/* Status */}
 					<View
 						style={tw`flex items-center justify-center w-[${SCREEN_WIDTH}px] px-12 pt-6 ${
-							selectionIndex === 5 ? "" : "hidden"
+							selectionIndex === 4 ? "" : "hidden"
 						}`}
 					>
 						<View style={tw`flex-1 w-full gap-y-4`}>
@@ -707,7 +562,7 @@ export default function Settings({ navigation }: SettingsProps) {
 					{/* Profile Picture */}
 					<View
 						style={tw`flex items-center justify-center w-[${SCREEN_WIDTH}px] px-12 ${
-							selectionIndex === 4 ? "" : "hidden"
+							selectionIndex === 3 ? "" : "hidden"
 						}`}
 					>
 						<View style={tw`w-[12.5rem] h-[12.5rem]`}>
@@ -744,7 +599,7 @@ export default function Settings({ navigation }: SettingsProps) {
 					{/* Passwords */}
 					<View
 						style={tw`w-[${SCREEN_WIDTH}px] px-12 pt-6 ${
-							selectionIndex === 3 ? "" : "hidden"
+							selectionIndex === 2 ? "" : "hidden"
 						}`}
 					>
 						<View style={tw`mb-4`}>
@@ -865,62 +720,6 @@ export default function Settings({ navigation }: SettingsProps) {
 											</Text>
 										</View>
 									}
-								/>
-							)}
-						/>
-						<Button
-							variant="secondary"
-							label="Save"
-							style={tw`absolute self-center bottom-4`}
-							onPress={onSubmit}
-							loading={isSubmitting}
-						/>
-					</View>
-
-					{/* Email */}
-					<View
-						style={tw`w-[${SCREEN_WIDTH}px] px-12 pt-6 relative ${
-							selectionIndex === 2 ? "" : "hidden"
-						}`}
-					>
-						<Controller
-							control={control}
-							name="email"
-							render={({ field: { onChange, value } }) => (
-								<Input
-									ref={textInputRef}
-									description="Your email address will be used to sign into your account."
-									indicator={
-										<View style={tw`flex-row items-center gap-x-2 mt-6`}>
-											<Image
-												source={
-													isEmailAvailable === null
-														? require("@/assets/icons/circle-check.svg")
-														: isEmailAvailable
-														? require("@/assets/icons/circle-check-green.svg")
-														: require("@/assets/icons/circle-x-red.svg")
-												}
-												style={tw`w-6 h-6`}
-											/>
-											<Text
-												variant="subheadline"
-												weight="semibold"
-												style={tw`text-content-tertiary`}
-											>
-												Email Available
-											</Text>
-										</View>
-									}
-									error={errors.email?.message}
-									autoComplete="email"
-									keyboardType="email-address"
-									defaultValue={profile?.email}
-									value={value}
-									onChangeText={(e) => {
-										setIsEmailAvailable(null);
-										onChange(e);
-									}}
-									onSubmitEditing={updateEmailAvailability}
 								/>
 							)}
 						/>
