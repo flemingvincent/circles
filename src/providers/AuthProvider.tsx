@@ -191,44 +191,35 @@ export const AuthProvider = ({ children }: any) => {
 
 	const forgotPassword = async (
 		email: string,
-		token: string,
+		id: string,
 		password: string,
 	) => {
 		try {
-			const { data: verifyData, error: verifyError } =
-				await supabase.auth.verifyOtp({
-					email,
-					token,
-					type: "recovery",
-				});
-
-			if (verifyError) {
-				throw verifyError;
+			const { error: updateError } = await supabase.auth.updateUser({
+				password,
+			});
+			if (updateError) {
+				throw updateError;
 			} else {
-				const { error: updateError } = await supabase.auth.updateUser({
-					password,
-				});
-				if (updateError) {
-					throw updateError;
-				} else {
-					const { data: dbData, error: dbError } = await supabase
-						.from("profiles")
-						.select("*")
-						.eq("id", verifyData.user?.id);
+				console.log("id: " + id);
+				const { data: dbData, error: dbError } = await supabase
+					.from("profiles")
+					.select("*")
+					.eq("id", id)						
+					.eq("email", email);	
 
-					if (dbError) {
-						throw dbError;
-					} else {
-						setProfile({
-							id: verifyData.user!.id,
-							email: dbData![0].email,
-							username: dbData![0].username,
-							first_name: dbData![0].first_name,
-							last_name: dbData![0].last_name,
-							avatar_url: dbData![0].avatar_url,
-							status: dbData![0].status,
-						});
-					}
+				if (dbError) {
+					throw dbError;
+				} else {			 
+					setProfile({
+						id: dbData![0].id,
+						email: dbData![0].email,
+						username: dbData![0].username,
+						first_name: dbData![0].first_name,
+						last_name: dbData![0].last_name,
+						avatar_url: dbData![0].avatar_url,
+						status: dbData![0].status,	
+					});	  
 				}
 			}
 		} catch (error) {
