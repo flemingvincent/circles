@@ -205,12 +205,12 @@ export const AuthProvider = ({ children }: any) => {
 				const { data: dbData, error: dbError } = await supabase
 					.from("profiles")
 					.select("*")
-					.eq("id", id)						
-					.eq("email", email);	
+					.eq("id", id)
+					.eq("email", email);
 
 				if (dbError) {
 					throw dbError;
-				} else {			 
+				} else {
 					setProfile({
 						id: dbData![0].id,
 						email: dbData![0].email,
@@ -218,8 +218,8 @@ export const AuthProvider = ({ children }: any) => {
 						first_name: dbData![0].first_name,
 						last_name: dbData![0].last_name,
 						avatar_url: dbData![0].avatar_url,
-						status: dbData![0].status,	
-					});	  
+						status: dbData![0].status,
+					});
 				}
 			}
 		} catch (error) {

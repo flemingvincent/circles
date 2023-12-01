@@ -563,10 +563,7 @@ export default function Home({ navigation }: HomeProps) {
 	const newCirclePossiblyAdded = useRef(false);
 	const newCircleAdded = navigation.getState().routes[0].params?.newCircleAdded;
 	const updateStateIfNewlyCreatedCircle = async () => {
-		if (
-			newCircleAdded === true &&
-			newCirclePossiblyAdded.current === true
-		) {
+		if (newCircleAdded === true && newCirclePossiblyAdded.current === true) {
 			newCirclePossiblyAdded.current = false;
 			await getUsersCircles();
 		}
