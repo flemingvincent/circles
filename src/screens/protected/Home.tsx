@@ -559,13 +559,12 @@ export default function Home({ navigation }: HomeProps) {
 		updateProfileIdsInCurrentCircle();
 	}, [selectedCircle]);
 
-	// Fetch all the user's circles from db if a new circle has been created.
+	// Fetch all the user's circles from db if a new circle has been created or joined.
 	const newCirclePossiblyAdded = useRef(false);
 	const newCircleAdded = navigation.getState().routes[0].params?.newCircleAdded;
 	const updateStateIfNewlyCreatedCircle = async () => {
 		if (
-			newCircleAdded !== null &&
-			newCircleAdded !== undefined &&
+			newCircleAdded === true &&
 			newCirclePossiblyAdded.current === true
 		) {
 			newCirclePossiblyAdded.current = false;
@@ -620,6 +619,7 @@ export default function Home({ navigation }: HomeProps) {
 					variant="outline"
 					label="Join a Circle"
 					onPress={() => {
+						newCirclePossiblyAdded.current = true;
 						navigation.navigate("Join");
 					}}
 				/>

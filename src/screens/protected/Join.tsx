@@ -52,7 +52,7 @@ export default function Join({ navigation }: JoinProps) {
 			});
 
 			setTimeout(() => {
-				navigation.navigate("Home");
+				navigation.navigate("Home", { newCircleAdded: true });
 			}, 1000);
 		} catch (error) {
 			console.log(error);
