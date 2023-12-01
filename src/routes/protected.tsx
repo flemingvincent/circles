@@ -6,7 +6,7 @@ import Join from "@/screens/protected/Join";
 import Settings from "@/screens/protected/Settings";
 
 export type ProtectedStackParamList = {
-	Home: { newCircleAdded: string | null };
+	Home: { newCircleAdded: boolean };
 	Settings: undefined;
 	Join: undefined;
 	Create: undefined;
@@ -24,7 +24,7 @@ export function ProtectedStack() {
 			<Stack.Screen
 				name="Home"
 				component={Home}
-				initialParams={{ newCircleAdded: null }}
+				initialParams={{ newCircleAdded: false }}
 			/>
 			<Stack.Screen name="Settings" component={Settings} />
 			<Stack.Screen name="Join" component={Join} />
