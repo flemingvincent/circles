@@ -16,6 +16,10 @@ export const CustomMarker = ({
 	avatar_url,
 	status,
 }: ICustomMarkerProps) => {
+	if (!location || !location.latitude || !location.longitude) {
+		return null;
+	}
+
 	return (
 		<Marker coordinate={location as LatLng}>
 			<Avatar
