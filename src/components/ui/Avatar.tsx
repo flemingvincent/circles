@@ -18,6 +18,7 @@ export const Avatar = ({
 }: IAvatarProps) => {
 	return (
 		<View>
+			<View style={[tw`rounded-full overflow-hidden`]}>
 			<Image
 				source={
 					avatar_url
@@ -26,6 +27,7 @@ export const Avatar = ({
 				}
 				style={[tw`w-11 h-11 rounded-full`, style]}
 			/>
+			</View>
 			<View
 				style={[
 					tw`absolute top-[-1] left-[-1] w-[1.125rem] h-[1.125rem] rounded-full border-2 border-white`,
