@@ -648,7 +648,7 @@ export default function Home({ navigation }: HomeProps) {
 				{/* Markers For Users In The Current Circle */}
 				{selectedCircle && createMapMarkersForUsersInCurrentCircle()}
 			</MapView>
-			<View style={tw`absolute top-16 right-8 self-center`}>
+			<View style={tw`absolute top-16 right-4 self-center`}>
 				<TouchableOpacity
 					onPress={async () => {
 						await getUsersCircles();
