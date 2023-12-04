@@ -19,14 +19,14 @@ export const Avatar = ({
 	return (
 		<View>
 			<View style={[tw`rounded-full overflow-hidden`]}>
-			<Image
-				source={
-					avatar_url
-						? { uri: avatar_url }
-						: require("@/assets/icons/avatar.svg")
-				}
-				style={[tw`w-11 h-11 rounded-full`, style]}
-			/>
+				<Image
+					source={
+						avatar_url
+							? { uri: avatar_url }
+							: require("@/assets/icons/avatar.svg")
+					}
+					style={[tw`w-11 h-11 rounded-full`, style]}
+				/>
 			</View>
 			<View
 				style={[
