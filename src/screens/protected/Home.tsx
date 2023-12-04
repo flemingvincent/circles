@@ -8,7 +8,13 @@ import { Image } from "expo-image";
 import * as Location from "expo-location";
 import * as Notifications from "expo-notifications";
 import { SetStateAction, useEffect, useMemo, useRef, useState } from "react";
-import { Platform, View, Linking, AppState } from "react-native";
+import {
+	Platform,
+	View,
+	Linking,
+	AppState,
+	TouchableOpacity,
+} from "react-native";
 import { SelectList } from "react-native-dropdown-select-list";
 import MapView from "react-native-maps";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -642,13 +648,27 @@ export default function Home({ navigation }: HomeProps) {
 				{/* Markers For Users In The Current Circle */}
 				{selectedCircle && createMapMarkersForUsersInCurrentCircle()}
 			</MapView>
+			<View style={tw`absolute top-16 right-4 self-center`}>
+				<TouchableOpacity
+					onPress={async () => {
+						await getUsersCircles();
+						await updateProfileIdsInCurrentCircle();
+					}}
+					style={tw`bg-black/30 w-10 h-10 rounded-full items-center justify-center`}
+				>
+					<Image
+						source={require("@/assets/icons/refresh-map.svg")}
+						style={tw`w-6 h-6`}
+					/>
+				</TouchableOpacity>
+			</View>
 			<View
-				style={tw`absolute top-15 self-center`}
-				onTouchStart={() => "style={tw`absolute top-15 self-center`}"}
+				style={tw`absolute top-16 self-center`}
+				onTouchStart={() => "style={tw`absolute top-16 self-center`}"}
 			>
 				<SelectList
 					search={false}
-					boxStyles={tw`bg-white border-0 rounded-full shadow-lg items-center w-50`}
+					boxStyles={tw`bg-white border-0 rounded-full shadow-lg items-center w-50 h-10`}
 					dropdownStyles={tw`bg-white bg-white border-[1.5px] border-border w-full shadow-lg`}
 					fontFamily="OpenRundeSemibold"
 					setSelected={(selection: SetStateAction<string>) =>
