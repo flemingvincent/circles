@@ -1,6 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Image } from "expo-image";
+import * as ImagePicker from "expo-image-picker";
 import { useRef, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import {
@@ -11,6 +12,8 @@ import {
 	Dimensions,
 	TextInput,
 	Keyboard,
+	KeyboardAvoidingView,
+	Platform,
 } from "react-native";
 import Animated, {
 	useAnimatedRef,
@@ -21,41 +24,48 @@ import Animated, {
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as z from "zod";
 
-import { Text, Input, Button } from "@/components/ui";
+import { Text, Input, Button, Alert } from "@/components/ui";
+import { supabase } from "@/config/supabase";
 import { useAuth } from "@/hooks/useAuth";
 import tw from "@/lib/tailwind";
-import { PublicStackParamList } from "@/routes/public";
+import { ProtectedStackParamList } from "@/routes/protected";
 import { useProfileStore, ProfileState } from "@/stores/profileStore";
+import { Status } from "@/types/profile";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
-type SettingsProps = NativeStackScreenProps<PublicStackParamList, "Settings">;
+type SettingsProps = NativeStackScreenProps<
+	ProtectedStackParamList,
+	"Settings"
+>;
 
 const selectionOptions = [
 	"Settings",
 	"Username",
-	"Email",
 	"Password",
 	"Profile Picture",
+	"Update Status",
 ];
 
-export default function Settings({ navigation }: SettingsProps) {
-	const { logout } = useAuth();
-	const [selectionIndex, setSelectionIndex] = useState(0);
-	const { profile }: ProfileState = useProfileStore();
-	const { checkUsernameAvailability, checkEmailAvailability } = useAuth();
+const statusOptions = ["active", "away", "busy", "offline"];
 
+export default function Settings({ navigation }: SettingsProps) {
+	const { updateUsername, updateUserPassword, logout } = useAuth();
+	const [selectionIndex, setSelectionIndex] = useState(0);
+	const { profile, setProfile }: ProfileState = useProfileStore();
+	const { checkUsernameAvailability } = useAuth();
 	const textInputRef = useRef<TextInput>(null);
 
 	const [isUsernameAvailable, setIsUsernameAvailable] = useState<
 		boolean | null
 	>(null);
-	const [isEmailAvailable, setIsEmailAvailable] = useState<boolean | null>(
-		null,
-	);
 	const [isPasswordVisible, setIsPasswordVisible] = useState<boolean>(false);
 	const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] =
 		useState<boolean>(false);
+
+	const defaultPic = require("@/assets/icons/avatar.svg");
+	const [profileImage, setProfileImage] = useState(defaultPic);
+	const [userStatus, setUserStatus] = useState<Status>(profile?.status!);
 
 	const scrollRef = useAnimatedRef<ScrollView>();
 	const alertRef = useRef<any>(null);
@@ -66,41 +76,46 @@ export default function Settings({ navigation }: SettingsProps) {
 		},
 	});
 
+	// Triggers the validation of the username field.
+	// If the username is valid, it checks if it's available.
+	// If the username is available, it sets the state to true.
+	// If the username is not available, it sets the state to false.
 	async function updateUsernameAvailability() {
-		// For simplicity and so the form looks pleasing off the bat,
-		// the username availability is green if the username hasn't changed.
-		if (getValues("username") === profile?.username) {
-			setIsUsernameAvailable(true);
-		} else {
-			checkUsernameAvailability(getValues("username")).then(
-				(isUsernameAvailable) => {
-					setIsUsernameAvailable(isUsernameAvailable);
-				},
-			);
-		}
-	}
-
-	async function updateEmailAvailability() {
-		// For simplicity and so the form looks pleasing off the bat,
-		// the email availability is green if the email hasn't changed.
-		if (getValues("email") === profile?.email) {
-			setIsEmailAvailable(true);
-		} else {
-			checkEmailAvailability(getValues("email")).then((isEmailAvailable) => {
-				setIsEmailAvailable(isEmailAvailable);
-			});
-		}
+		trigger("username").then((isValid) => {
+			if (isValid) {
+				if (getValues("username") === profile?.username) {
+					setIsUsernameAvailable(true);
+				} else {
+					checkUsernameAvailability(getValues("username")).then(
+						(isUsernameAvailable) => {
+							setIsUsernameAvailable(isUsernameAvailable);
+						},
+					);
+				}
+			}
+		});
 	}
 
 	async function onSubmit() {
+		// If the user is on the username screen.
 		if (selectionIndex === 1) {
+			// Trigger the validation of the username field.
 			trigger("username").then((isValid) => {
+				// If the username is valid.
 				if (isValid) {
+					// Update the username. Display a success message. Go back to the previous screen.
 					try {
-						updateUsernameAvailability();
+						updateUsername(getValues("username"));
+
+						alertRef.current?.showAlert({
+							title: "Success!",
+							message: "Your username has been updated.",
+							variant: "success",
+						});
+
+						handleScrollBackward();
 					} catch (error) {
 						// @ts-ignore
-						console.log("Supabase Create Account Error: ", error);
 						alertRef.current?.showAlert({
 							title: "Oops!",
 							// @ts-ignore
@@ -110,29 +125,36 @@ export default function Settings({ navigation }: SettingsProps) {
 					}
 				}
 			});
+			// If the user is on the password screen.
 		} else if (selectionIndex === 2) {
-			trigger("email").then((isValid) => {
+			// Trigger the validation of the password field.
+			trigger("password").then((isValid) => {
+				// If the password is valid.
 				if (isValid) {
-					try {
-						updateEmailAvailability();
-					} catch (error) {
-						// @ts-ignore
-						console.log("Supabase Create Account Error: ", error);
-						alertRef.current?.showAlert({
-							title: "Oops!",
-							// @ts-ignore
-							message: error.message + ".",
-							variant: "error",
-						});
-					}
-				}
-			});
-		} else if (selectionIndex === 3) {
-			trigger("password").then((isValid1) => {
-				if (isValid1) {
+					// Trigger the validation of the confirmPassword field.
 					trigger("confirmPassword").then((isValid2) => {
+						// If the confirmPassword is valid.
 						if (isValid2) {
-							// TODO (change user password here)
+							// Update the password. Display a success message. Go back to the previous screen.
+							try {
+								updateUserPassword(getValues("password"));
+
+								alertRef.current?.showAlert({
+									title: "Success!",
+									message: "Your password has been updated.",
+									variant: "success",
+								});
+
+								handleScrollBackward();
+							} catch (error) {
+								// @ts-ignore
+								alertRef.current?.showAlert({
+									title: "Oops!",
+									// @ts-ignore
+									message: error.message + ".",
+									variant: "error",
+								});
+							}
 						}
 					});
 				}
@@ -142,11 +164,6 @@ export default function Settings({ navigation }: SettingsProps) {
 
 	const formSchema = z
 		.object({
-			email: z
-				.string({
-					required_error: "Oops! An email is required.",
-				})
-				.email("Oops! That's not an email."),
 			password: z
 				.string({
 					required_error: "Oops! A password is required.",
@@ -159,20 +176,6 @@ export default function Settings({ navigation }: SettingsProps) {
 			confirmPassword: z.string({
 				required_error: "Oops! A password is required.",
 			}),
-			firstName: z
-				.string({
-					required_error: "Oops! A first name is required.",
-				})
-				.trim()
-				.regex(/^[a-zA-Z -]+$/, "Oops! That's not a valid name.")
-				.transform((value) => value.replace(/\b\w/g, (c) => c.toUpperCase())),
-			lastName: z
-				.string({
-					required_error: "Oops! A last name is required.",
-				})
-				.trim()
-				.regex(/^[a-zA-Z -]+$/, "Oops! That's not a valid name.")
-				.transform((value) => value.replace(/\b\w/g, (c) => c.toUpperCase())),
 			username: z
 				.string({
 					required_error: "Oops! A username is required.",
@@ -193,7 +196,6 @@ export default function Settings({ navigation }: SettingsProps) {
 		control,
 		trigger,
 		getValues,
-		handleSubmit,
 		setValue,
 		reset,
 		formState: { errors, isSubmitting },
@@ -220,185 +222,393 @@ export default function Settings({ navigation }: SettingsProps) {
 		reset();
 		scrollRef.current?.scrollTo({ x: 0 });
 	};
+	const pickImage = async () => {
+		try {
+			const result = await ImagePicker.launchImageLibraryAsync({
+				mediaTypes: ImagePicker.MediaTypeOptions.Images,
+				allowsEditing: true,
+				aspect: [1, 1],
+				quality: 1,
+			});
+			if (!result.canceled) {
+				const profileImageUri = result.assets[0].uri;
+				const imageSource = { uri: profileImageUri };
+				setProfileImage(imageSource || defaultPic);
+			}
+		} catch (error) {
+			console.error("Error picking image:", error);
+			throw error; // Rethrow the error to handle it elsewhere if needed
+		}
+	};
+
+	const updateAvatar = async () => {
+		try {
+			const {
+				data: { user },
+			} = await supabase.auth.getUser();
+			if (!user) {
+				throw new Error("User not authenticated");
+			}
+
+			// Upload the new profile picture to the "avatars" bucket
+			const { error: uploadError } = await supabase.storage
+				.from("avatars")
+				.upload(`user-${user?.id}.jpg`, profileImage, {
+					contentType: "image/jpeg", // Optional: Set cache control headers
+				});
+
+			if (uploadError) {
+				const { error: updateError } = await supabase.storage
+					.from("avatars")
+					.update(`user-${user?.id}.jpg`, profileImage, {
+						contentType: "image/jpeg", // Optional: Set cache control headers
+					});
+				if (updateError) {
+					console.error("Error updating profile picture:", uploadError.message);
+				} else {
+					const userId = user.id;
+
+					const { data } = await supabase.storage
+						.from("avatars")
+						.createSignedUrl(`user-${user?.id}.jpg`, 31536000);
+					console.log(profileImage);
+					const { error: profileError } = await supabase
+						.from("profiles")
+						.update({ avatar_url: data?.signedUrl })
+						.eq("id", userId);
+					if (profileError) {
+						throw profileError;
+					}
+
+					setProfile({
+						id: profile!.id,
+						email: profile!.email,
+						username: profile!.username,
+						first_name: profile!.first_name,
+						last_name: profile!.last_name,
+						avatar_url: data?.signedUrl,
+						status: profile!.status,
+					});
+
+					console.log(
+						"Profile picture updated successfully:",
+						JSON.stringify(profileImage),
+					);
+
+					alertRef.current?.showAlert({
+						title: "Success!",
+						message: "Your profile picture has been updated.",
+						variant: "success",
+					});
+
+					handleScrollBackward();
+				}
+			} else {
+				const userId = user.id;
+
+				const { data } = await supabase.storage
+					.from("avatars")
+					.createSignedUrl(`user-${user?.id}.jpg`, 31536000);
+				const { error: profileError } = await supabase
+					.from("profiles")
+					.update({ avatar_url: data?.signedUrl })
+					.eq("id", userId);
+
+				if (profileError) {
+					throw profileError;
+				}
+
+				setProfile({
+					id: profile!.id,
+					email: profile!.email,
+					username: profile!.username,
+					first_name: profile!.first_name,
+					last_name: profile!.last_name,
+					avatar_url: data?.signedUrl,
+					status: profile!.status,
+				});
+
+				console.log(
+					"Profile picture uploaded successfully:",
+					JSON.stringify(profileImage),
+				);
+
+				alertRef.current?.showAlert({
+					title: "Success!",
+					message: "Your profile picture has been uploaded.",
+					variant: "success",
+				});
+
+				handleScrollBackward();
+			}
+		} catch (error) {
+			console.error("Error updating profile picture:", error);
+			throw error;
+		}
+	};
+
+	const updateUserStatus = async (newStatus: Status) => {
+		try {
+			const { error } = await supabase
+				.from("profiles")
+				.update({ status: newStatus })
+				.eq("id", profile?.id);
+
+			if (error) {
+				throw error;
+			}
+
+			setProfile({
+				id: profile!.id,
+				email: profile!.email,
+				username: profile!.username,
+				first_name: profile!.first_name,
+				last_name: profile!.last_name,
+				avatar_url: profile!.avatar_url,
+				status: newStatus,
+			});
+
+			console.log("User status updated successfully");
+
+			alertRef.current?.showAlert({
+				title: "Success!",
+				message: "Your status has been updated.",
+				variant: "success",
+			});
+
+			handleScrollBackward();
+		} catch (error) {
+			console.error("Error updating user status:", error);
+
+			alertRef.current?.showAlert({
+				title: "Oops!",
+				// @ts-ignore
+				message: error.message + ".",
+				variant: "error",
+			});
+
+			throw error;
+		}
+	};
 
 	return (
 		<SafeAreaView style={tw`flex-1 bg-white`}>
-			{/* Title and back button */}
-			<View
-				style={tw`flex flex-row items-center justify-center w-full py-[0.6875rem]`}
-			>
-				<Pressable
-					style={tw`absolute left-4`}
-					hitSlop={24}
-					onPress={handleScrollBackward}
-				>
-					<Image
-						style={tw`w-6 h-6`}
-						source={
-							selectionIndex === 0
-								? require("@/assets/icons/x.svg")
-								: require("@/assets/icons/chevron-left-black.svg")
-						}
-					/>
-				</Pressable>
-				<Text variant="body" weight="semibold">
-					{selectionOptions[selectionIndex]}
-				</Text>
-			</View>
-
-			{/* Two horizontally oriented screens */}
-			<Animated.ScrollView
-				ref={scrollRef as any}
-				onScroll={scrollHandler}
-				showsHorizontalScrollIndicator={false}
-				scrollEnabled={false}
-				scrollEventThrottle={8}
-				horizontal
-				pagingEnabled
+			<Alert ref={alertRef} />
+			<KeyboardAvoidingView
 				style={tw`flex-1`}
+				behavior={Platform.OS === "ios" ? "padding" : "height"}
 			>
-				{/* Screen One */}
-				<ScrollView
-					style={tw`flex-1 w-[${SCREEN_WIDTH}px] pt-6`}
-					showsVerticalScrollIndicator={false}
-					scrollEnabled={false}
-				>
-					<Text
-						style={tw`text-content-secondary px-4`}
-						variant="caption1"
-						weight="semibold"
-					>
-						ACCOUNT
-					</Text>
-					<TouchableOpacity
-						style={tw`flex flex-row justify-between w-full p-4 border-b border-b-border`}
-						onPress={() => {
-							// Set the index so we know to move horizontally and update the title.
-							setSelectionIndex(1);
-							// Set the username value of the form.
-							setValue("username", profile?.username!);
-							// Check the username availability right away.
-							updateUsernameAvailability();
-							// Finally, go to the screen.
-							handleScrollForward();
-						}}
-					>
-						<Text weight="semibold">Username</Text>
-						<Image
-							style={tw`w-6 h-6`}
-							source={require("@/assets/icons/chevron-right-gray.svg")}
-						/>
-					</TouchableOpacity>
-					<TouchableOpacity
-						style={tw`flex flex-row justify-between w-full p-4 border-b border-b-border`}
-						onPress={() => {
-							// Set the index so we know to move horizontally and update the title.
-							setSelectionIndex(2);
-							// Set the username value of the form.
-							setValue("email", profile?.email!);
-							// Check the username availability right away.
-							updateEmailAvailability();
-							// Finally, go to the screen.
-							handleScrollForward();
-						}}
-					>
-						<Text weight="semibold">Email</Text>
-						<Image
-							style={tw`w-6 h-6`}
-							source={require("@/assets/icons/chevron-right-gray.svg")}
-						/>
-					</TouchableOpacity>
-					<TouchableOpacity
-						style={tw`flex flex-row justify-between w-full p-4 border-b border-b-border`}
-						onPress={() => {
-							handleScrollForward();
-							setSelectionIndex(3);
-						}}
-					>
-						<Text weight="semibold">Password</Text>
-						<Image
-							style={tw`w-6 h-6`}
-							source={require("@/assets/icons/chevron-right-gray.svg")}
-						/>
-					</TouchableOpacity>
-					<TouchableOpacity
-						style={tw`flex flex-row justify-between w-full p-4 border-b border-b-border`}
-						onPress={() => {
-							handleScrollForward();
-							setSelectionIndex(4);
-						}}
-					>
-						<Text weight="semibold">Profile Picture</Text>
-						<Image
-							style={tw`w-6 h-6`}
-							source={require("@/assets/icons/chevron-right-gray.svg")}
-						/>
-					</TouchableOpacity>
-					<TouchableOpacity
-						style={tw`flex flex-row justify-between w-full p-4`}
-						onPress={() => {
-							logout();
-						}}
-					>
-						<Text weight="semibold">Logout</Text>
-						<Image
-							style={tw`w-6 h-6`}
-							source={require("@/assets/icons/logout-red.svg")}
-						/>
-					</TouchableOpacity>
-					<Text
-						style={tw`text-content-secondary mt-6 px-4`}
-						variant="caption1"
-						weight="semibold"
-					>
-						PERMISSIONS
-					</Text>
-					<TouchableOpacity
-						style={tw`flex flex-row justify-between w-full p-4 border-b border-b-border`}
-					>
-						<Text weight="semibold">Location</Text>
-						<Image
-							style={tw`w-6 h-6`}
-							source={require("@/assets/icons/ellipsis-vertical.svg")}
-						/>
-					</TouchableOpacity>
-					<TouchableOpacity
-						style={tw`flex flex-row justify-between w-full p-4`}
-					>
-						<Text weight="semibold">Notifications</Text>
-						<Image
-							style={tw`w-6 h-6`}
-							source={require("@/assets/icons/ellipsis-vertical.svg")}
-						/>
-					</TouchableOpacity>
-				</ScrollView>
-
-				{/* Screen Two. Technically, four screens, but only the selected one is shown */}
-
-				{/* Profile Picture */}
+				{/* Title and back button */}
 				<View
-					style={tw`flex flex-col justify-between w-[${SCREEN_WIDTH}px] px-10 mt-7 ${
-						selectionIndex === 4 ? "" : "hidden"
-					}`}
+					style={tw`flex flex-row items-center justify-center w-full py-[0.6875rem]`}
 				>
-					<Text>Profile Pic</Text>
+					<Pressable
+						style={tw`absolute left-4`}
+						hitSlop={24}
+						onPress={handleScrollBackward}
+					>
+						<Image
+							style={tw`w-6 h-6`}
+							source={
+								selectionIndex === 0
+									? require("@/assets/icons/x.svg")
+									: require("@/assets/icons/chevron-left-black.svg")
+							}
+						/>
+					</Pressable>
+					<Text variant="body" weight="semibold">
+						{selectionOptions[selectionIndex]}
+					</Text>
 				</View>
 
-				{/* Passwords */}
-				<View
-					style={tw`flex flex-col justify-between w-[${SCREEN_WIDTH}px] px-10 mt-7 ${
-						selectionIndex === 3 ? "" : "hidden"
-					}`}
+				{/* Two horizontally oriented screens */}
+				<Animated.ScrollView
+					ref={scrollRef as any}
+					onScroll={scrollHandler}
+					showsHorizontalScrollIndicator={false}
+					scrollEnabled={false}
+					scrollEventThrottle={8}
+					horizontal
+					pagingEnabled
+					style={tw`flex-1`}
 				>
-					<View>
-						<View style={tw`mb-10`}>
+					{/* Screen One */}
+					<View style={tw`flex-1 w-[${SCREEN_WIDTH}px] pt-6`}>
+						<Text
+							style={tw`text-content-secondary px-4`}
+							variant="caption1"
+							weight="semibold"
+						>
+							ACCOUNT
+						</Text>
+						<TouchableOpacity
+							style={tw`flex flex-row justify-between w-full p-4 border-b border-b-border`}
+							onPress={() => {
+								// Set the index so we know to move horizontally and update the title.
+								setSelectionIndex(1);
+								// Set the username value of the form.
+								setValue("username", profile?.username!);
+								// Check the username availability right away.
+								updateUsernameAvailability();
+								// Finally, go to the screen.
+								handleScrollForward();
+							}}
+						>
+							<Text weight="semibold">Username</Text>
+							<Image
+								style={tw`w-6 h-6`}
+								source={require("@/assets/icons/chevron-right-gray.svg")}
+							/>
+						</TouchableOpacity>
+						<TouchableOpacity
+							style={tw`flex flex-row justify-between w-full p-4 border-b border-b-border`}
+							onPress={() => {
+								handleScrollForward();
+								setSelectionIndex(2);
+							}}
+						>
+							<Text weight="semibold">Password</Text>
+							<Image
+								style={tw`w-6 h-6`}
+								source={require("@/assets/icons/chevron-right-gray.svg")}
+							/>
+						</TouchableOpacity>
+						<TouchableOpacity
+							style={tw`flex flex-row justify-between w-full p-4 border-b border-b-border`}
+							onPress={() => {
+								handleScrollForward();
+								setSelectionIndex(3);
+							}}
+						>
+							<Text weight="semibold">Profile Picture</Text>
+							<Image
+								style={tw`w-6 h-6`}
+								source={require("@/assets/icons/chevron-right-gray.svg")}
+							/>
+						</TouchableOpacity>
+						<TouchableOpacity
+							style={tw`flex flex-row justify-between w-full p-4 border-b border-b-border`}
+							onPress={() => {
+								handleScrollForward();
+								setSelectionIndex(4);
+							}}
+						>
+							<Text weight="semibold">Update Status</Text>
+							<Image
+								style={tw`w-6 h-6`}
+								source={require("@/assets/icons/chevron-right-gray.svg")}
+							/>
+						</TouchableOpacity>
+						<TouchableOpacity
+							style={tw`flex flex-row justify-between w-full p-4`}
+							onPress={() => {
+								logout();
+							}}
+						>
+							<Text weight="semibold">Logout</Text>
+							<Image
+								style={tw`w-6 h-6`}
+								source={require("@/assets/icons/logout-red.svg")}
+							/>
+						</TouchableOpacity>
+					</View>
+
+					{/* Screen Two. Technically, four screens, but only the selected one is shown */}
+
+					{/* Status */}
+					<View
+						style={tw`flex items-center justify-center w-[${SCREEN_WIDTH}px] px-12 pt-6 ${
+							selectionIndex === 4 ? "" : "hidden"
+						}`}
+					>
+						<View style={tw`flex-1 w-full gap-y-4`}>
+							{statusOptions.map((status, index) => (
+								<TouchableOpacity
+									key={index}
+									style={[
+										tw`h-12 px-4 rounded-xl flex flex-row items-center justify-between`,
+										userStatus === status && tw`bg-border`,
+									]}
+									onPress={() => {
+										setUserStatus(status as Status);
+									}}
+								>
+									<Text style={tw`capitalize`} weight="semibold">
+										{status}
+									</Text>
+									<View
+										style={[
+											tw`w-[1.125rem] h-[1.125rem] rounded-full border-2 border-white`,
+											status === "active" && tw`bg-green-500`,
+											status === "away" && tw`bg-yellow-500`,
+											status === "busy" && tw`bg-red-500`,
+											status === "offline" && tw`bg-gray-500`,
+										]}
+									/>
+								</TouchableOpacity>
+							))}
+						</View>
+						<Button
+							variant="secondary"
+							label="Save"
+							style={tw`bottom-4 absolute`}
+							onPress={() => {
+								updateUserStatus(userStatus);
+							}}
+							loading={isSubmitting}
+						/>
+					</View>
+
+					{/* Profile Picture */}
+					<View
+						style={tw`flex items-center justify-center w-[${SCREEN_WIDTH}px] px-12 ${
+							selectionIndex === 3 ? "" : "hidden"
+						}`}
+					>
+						<View style={tw`w-[12.5rem] h-[12.5rem]`}>
+							<Image
+								// style={tw`w-[12.5rem] h-[12.5rem]`}
+								style={tw`w-full h-full rounded-full overflow-hidden`}
+								source={
+									profileImage?.uri
+										? profileImage
+										: profile?.avatar_url
+										? { uri: profile?.avatar_url }
+										: require("@/assets/icons/avatar.svg")
+								}
+							/>
+							<Pressable
+								style={tw`absolute w-16 h-16 bottom-0 right-0 rounded-full bg-white shadow-md items-center justify-center`}
+								onPress={() => pickImage()}
+							>
+								<Image
+									style={tw`w-6 h-6`}
+									source={require("@/assets/icons/edit.svg")}
+								/>
+							</Pressable>
+						</View>
+						<Button
+							variant="secondary"
+							label="Save"
+							style={tw`bottom-4 absolute`}
+							onPress={() => updateAvatar()}
+							loading={isSubmitting}
+						/>
+					</View>
+
+					{/* Passwords */}
+					<View
+						style={tw`w-[${SCREEN_WIDTH}px] px-12 pt-6 ${
+							selectionIndex === 2 ? "" : "hidden"
+						}`}
+					>
+						<View style={tw`mb-4`}>
 							<Controller
 								control={control}
 								name="password"
 								render={({ field: { onChange, value } }) => (
 									<Input
-										ref={textInputRef}
-										secureTextEntry={!isPasswordVisible}
+										placeholder="Password"
 										icon={
 											<Pressable
 												onPress={() => {
@@ -411,51 +621,17 @@ export default function Settings({ navigation }: SettingsProps) {
 															? require("@/assets/icons/eye-close.svg")
 															: require("@/assets/icons/eye.svg")
 													}
-													style={tw`w-6 h-6`}
+													style={tw`w-6 h-6 rounded-full`}
 												/>
 											</Pressable>
 										}
+										secureTextEntry={!isPasswordVisible}
+										description="Strong passwords consist of at least 10 characters and should include a combination of uppercase and lowercase letters, special characters, and numbers."
 										error={errors.password?.message}
-										placeholder="New Password"
 										value={value}
 										onChangeText={onChange}
-										onSubmitEditing={() => handleSubmit(onSubmit)()}
 										maxLength={64}
-									/>
-								)}
-							/>
-						</View>
-						<Controller
-							control={control}
-							name="confirmPassword"
-							render={({ field: { onChange, value } }) => (
-								<Input
-									ref={textInputRef}
-									secureTextEntry={!isConfirmPasswordVisible}
-									icon={
-										<Pressable
-											onPress={() => {
-												setIsConfirmPasswordVisible(!isConfirmPasswordVisible);
-											}}
-										>
-											<Image
-												source={
-													isPasswordVisible
-														? require("@/assets/icons/eye-close.svg")
-														: require("@/assets/icons/eye.svg")
-												}
-												style={tw`w-6 h-6`}
-											/>
-										</Pressable>
-									}
-									error={errors.confirmPassword?.message}
-									placeholder="Confirm New Password"
-									value={value}
-									onChangeText={onChange}
-									onSubmitEditing={() => handleSubmit(onSubmit)()}
-									maxLength={64}
-									indicator={
-										<View>
+										indicator={
 											<View style={tw`flex-row items-center gap-x-2 mt-6`}>
 												<Image
 													style={tw`w-6 h-6`}
@@ -476,6 +652,7 @@ export default function Settings({ navigation }: SettingsProps) {
 															: require("@/assets/icons/bar-red.svg")
 													}
 												/>
+
 												<Text
 													variant="subheadline"
 													weight="semibold"
@@ -484,87 +661,53 @@ export default function Settings({ navigation }: SettingsProps) {
 													Password Strength
 												</Text>
 											</View>
-											<Text
-												variant="caption1"
-												weight="semibold"
-												style={[tw`text-content-tertiary mt-6 mt-4`]}
-											>
-												Strong passwords consist of at least 10 characters and
-												should include a combination of uppercase and lowercase
-												letters, special characters, and numbers.
-											</Text>
-											<View style={tw`flex-row items-center gap-x-2 mt-6`}>
-												<Image
-													source={
-														// Check if either password or confirmPassword is undefined or empty
-														getValues("password") === undefined ||
-														getValues("password") === "" ||
-														getValues("confirmPassword") === undefined ||
-														getValues("confirmPassword") === ""
-															? require("@/assets/icons/circle-check.svg") // Show circle-check.svg
-															: getValues("password") ===
-															  getValues("confirmPassword")
-															? require("@/assets/icons/circle-check-green.svg") // Show circle-check-green.svg
-															: require("@/assets/icons/circle-check.svg")
-													}
-													style={tw`w-6 h-6`}
-												/>
-												<Text
-													variant="subheadline"
-													weight="semibold"
-													style={tw`text-content-tertiary`}
-												>
-													Passwords Match
-												</Text>
-											</View>
-											<Text
-												variant="caption1"
-												weight="semibold"
-												style={[tw`text-content-tertiary mt-6 mt-4`]}
-											>
-												In order to continue, re-enter your password exactly the
-												same as before.
-											</Text>
-										</View>
-									}
-								/>
-							)}
-						/>
-					</View>
-					<View>
-						<Button
-							variant="secondary"
-							label="Save"
-							style={tw`mb-4`}
-							onPress={onSubmit}
-							loading={isSubmitting}
-						/>
-					</View>
-				</View>
-
-				{/* Email */}
-				<View
-					style={tw`flex flex-col justify-between w-[${SCREEN_WIDTH}px] px-10 mt-7 ${
-						selectionIndex === 2 ? "" : "hidden"
-					}`}
-				>
-					<View>
+										}
+									/>
+								)}
+							/>
+						</View>
 						<Controller
 							control={control}
-							name="email"
+							name="confirmPassword"
 							render={({ field: { onChange, value } }) => (
 								<Input
-									ref={textInputRef}
-									description="Your email address will be used to sign into your account."
+									placeholder="Confirm Password"
+									icon={
+										<Pressable
+											onPress={() => {
+												setIsConfirmPasswordVisible(!isConfirmPasswordVisible);
+											}}
+										>
+											<Image
+												source={
+													isConfirmPasswordVisible
+														? require("@/assets/icons/eye-close.svg")
+														: require("@/assets/icons/eye.svg")
+												}
+												style={tw`w-6 h-6`}
+											/>
+										</Pressable>
+									}
+									secureTextEntry={!isConfirmPasswordVisible}
+									description="In order to continue, re-enter your password exactly the same as before."
+									error={errors.confirmPassword?.message}
+									value={value}
+									onChangeText={onChange}
+									maxLength={64}
 									indicator={
 										<View style={tw`flex-row items-center gap-x-2 mt-6`}>
 											<Image
 												source={
-													isEmailAvailable === null
-														? require("@/assets/icons/circle-check.svg")
-														: isEmailAvailable
-														? require("@/assets/icons/circle-check-green.svg")
-														: require("@/assets/icons/circle-x-red.svg")
+													// Check if either password or confirmPassword is undefined or empty
+													getValues("password") === undefined ||
+													getValues("password") === "" ||
+													getValues("confirmPassword") === undefined ||
+													getValues("confirmPassword") === ""
+														? require("@/assets/icons/circle-check.svg") // Show circle-check.svg
+														: getValues("password") ===
+														  getValues("confirmPassword")
+														? require("@/assets/icons/circle-check-green.svg") // Show circle-check-green.svg
+														: require("@/assets/icons/circle-check.svg")
 												}
 												style={tw`w-6 h-6`}
 											/>
@@ -573,40 +716,24 @@ export default function Settings({ navigation }: SettingsProps) {
 												weight="semibold"
 												style={tw`text-content-tertiary`}
 											>
-												Email Available
+												Passwords Match
 											</Text>
 										</View>
 									}
-									error={errors.email?.message}
-									autoComplete="email"
-									keyboardType="email-address"
-									defaultValue={profile?.email}
-									value={value}
-									onChangeText={(e) => {
-										setIsEmailAvailable(null);
-										onChange(e);
-									}}
-									onSubmitEditing={onSubmit}
 								/>
 							)}
 						/>
-					</View>
-					<View>
 						<Button
 							variant="secondary"
 							label="Save"
-							style={tw`mb-4`}
+							style={tw`absolute self-center bottom-4`}
 							onPress={onSubmit}
 							loading={isSubmitting}
 						/>
 					</View>
-				</View>
 
-				{/* Username */}
-				<View
-					style={tw`flex flex-col justify-between w-[${SCREEN_WIDTH}px] px-10 mt-7`}
-				>
-					<View>
+					{/* Username */}
+					<View style={tw`flex w-[${SCREEN_WIDTH}px] px-12 pt-6 relative`}>
 						<Controller
 							control={control}
 							name="username"
@@ -642,22 +769,20 @@ export default function Settings({ navigation }: SettingsProps) {
 										setIsUsernameAvailable(null);
 										onChange(e);
 									}}
-									onSubmitEditing={onSubmit}
+									onSubmitEditing={updateUsernameAvailability}
 								/>
 							)}
 						/>
-					</View>
-					<View>
 						<Button
 							variant="secondary"
 							label="Save"
-							style={tw`mb-4`}
+							style={tw`absolute self-center bottom-4`}
 							onPress={onSubmit}
 							loading={isSubmitting}
 						/>
 					</View>
-				</View>
-			</Animated.ScrollView>
+				</Animated.ScrollView>
+			</KeyboardAvoidingView>
 		</SafeAreaView>
 	);
 }

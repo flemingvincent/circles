@@ -3,16 +3,20 @@ import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
+import { LogBox } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useDeviceContext } from "twrnc";
 
 import tw from "@/lib/tailwind";
 import { AuthProvider } from "@/providers/AuthProvider";
+import { CircleProvider } from "@/providers/CircleProvider";
 import { LocationProvider } from "@/providers/LocationProvider";
 import { AppRoutes } from "@/routes";
 
 SplashScreen.preventAutoHideAsync();
+
+LogBox.ignoreAllLogs();
 
 export default function App() {
 	useDeviceContext(tw);
@@ -41,14 +45,16 @@ export default function App() {
 	return (
 		<AuthProvider>
 			<LocationProvider>
-				<GestureHandlerRootView style={tw`flex-1`}>
-					<BottomSheetModalProvider>
-						<SafeAreaProvider>
-							<StatusBar style="dark" />
-							<AppRoutes />
-						</SafeAreaProvider>
-					</BottomSheetModalProvider>
-				</GestureHandlerRootView>
+				<CircleProvider>
+					<GestureHandlerRootView style={tw`flex-1`}>
+						<BottomSheetModalProvider>
+							<SafeAreaProvider>
+								<StatusBar style="dark" />
+								<AppRoutes />
+							</SafeAreaProvider>
+						</BottomSheetModalProvider>
+					</GestureHandlerRootView>
+				</CircleProvider>
 			</LocationProvider>
 		</AuthProvider>
 	);

@@ -23,7 +23,7 @@ import Animated, {
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as z from "zod";
 
-import { Button, Input, Text, Alert } from "@/components/ui";
+import { Button, Input, Text, Alert, ScreenIndicator } from "@/components/ui";
 import { supabase } from "@/config/supabase";
 import { useAuth } from "@/hooks/useAuth";
 import tw from "@/lib/tailwind";
@@ -35,35 +35,12 @@ type ForgotPasswordProps = NativeStackScreenProps<
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
-const ScreenIndicator = ({
-	activeIndex,
-	index,
-}: {
-	activeIndex: Animated.SharedValue<number>;
-	index: number;
-}) => {
-	const rIndicatorStyle = useAnimatedStyle(() => {
-		return {
-			width: withTiming(activeIndex.value === index ? 32 : 16),
-			backgroundColor: withTiming(
-				activeIndex.value === index ? "#4DAFFF" : "#D9D9D9",
-			),
-		};
-	});
-
-	return (
-		<Animated.View
-			style={[tw`h-[0.1875rem] bg-red-500 rounded-full`, rIndicatorStyle]}
-		/>
-	);
-};
-
 export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
 	const email = route.params.email;
 	const scrollRef = useAnimatedRef<ScrollView>();
 	const alertRef = useRef<any>(null);
 	const translateX = useSharedValue(0);
-	const { forgotPassword } = useAuth();
+	const { verifyOtp, forgotPassword } = useAuth();
 
 	// The following two variables and functions are used to automatically focus the inputs.
 	type TextInputRef = React.RefObject<TextInput>;
@@ -73,6 +50,7 @@ export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
 		useRef<TextInput>(null),
 	];
 	let currTextInput = 0;
+	let verifiedID = "";
 
 	const openNextTextInput = () => {
 		currTextInput += 1;
@@ -102,10 +80,35 @@ export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
 		if (activeIndex.value === 0) {
 			trigger("code").then((isValid) => {
 				if (isValid) {
-					scrollRef.current?.scrollTo({
-						x: SCREEN_WIDTH * (activeIndex.value + 1),
-					});
-					openNextTextInput();
+					try {
+						verifyOtp(email, getValues("code")).then((verifiedIDResult) => {
+							if (verifiedIDResult !== "") {
+								// success
+								verifiedID = verifiedIDResult!;
+
+								scrollRef.current?.scrollTo({
+									x: SCREEN_WIDTH * (activeIndex.value + 1),
+								});
+								openNextTextInput();
+							} else {
+								alertRef.current?.showAlert({
+									title: "Oops!",
+									// @ts-ignore
+									message: "Invalid Code",
+									variant: "error",
+								});
+							}
+						});
+					} catch (error) {
+						// @ts-ignore
+						console.log("Supabase Create Account Error: ", error);
+						alertRef.current?.showAlert({
+							title: "Oops!",
+							// @ts-ignore
+							message: error.message + ".",
+							variant: "error",
+						});
+					}
 				}
 			});
 		}
@@ -179,9 +182,9 @@ export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
 
 	async function onSubmit(data: z.infer<typeof formSchema>) {
 		try {
-			const { code, password } = data;
+			const { password } = data;
 
-			await forgotPassword(email, code, password);
+			await forgotPassword(email, verifiedID, password);
 		} catch (error) {
 			console.log("Supabase Reset Password Error: ", error);
 			alertRef.current?.showAlert({
@@ -228,6 +231,9 @@ export function ForgotPassword({ navigation, route }: ForgotPasswordProps) {
 					message: "Verification code sent.",
 					variant: "success",
 				});
+
+				// reset
+				verifiedID = "";
 			}
 		} catch (error) {
 			console.log("Supabase forgot password error: ", error);

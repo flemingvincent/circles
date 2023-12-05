@@ -8,7 +8,7 @@ import { IProfile, Status } from "@/types/profile";
 export interface ICustomMarkerProps {
 	location: IProfile["location"];
 	avatar_url: string | null | undefined;
-	status?: Status | undefined;
+	status?: Status | null | undefined;
 }
 
 export const CustomMarker = ({
@@ -16,6 +16,10 @@ export const CustomMarker = ({
 	avatar_url,
 	status,
 }: ICustomMarkerProps) => {
+	if (!location || !location.latitude || !location.longitude) {
+		return null;
+	}
+
 	return (
 		<Marker coordinate={location as LatLng}>
 			<Avatar

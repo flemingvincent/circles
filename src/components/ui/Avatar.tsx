@@ -7,7 +7,7 @@ import { Status } from "@/types/profile";
 
 interface IAvatarProps {
 	avatar_url: string | null | undefined;
-	status?: Status;
+	status?: Status | null | undefined;
 	style?: Image["props"]["style"];
 }
 
@@ -18,14 +18,16 @@ export const Avatar = ({
 }: IAvatarProps) => {
 	return (
 		<View>
-			<Image
-				source={
-					avatar_url
-						? { uri: avatar_url }
-						: require("@/assets/icons/avatar.svg")
-				}
-				style={[tw`w-11 h-11 rounded-full`, style]}
-			/>
+			<View style={[tw`rounded-full overflow-hidden`]}>
+				<Image
+					source={
+						avatar_url
+							? { uri: avatar_url }
+							: require("@/assets/icons/avatar.svg")
+					}
+					style={[tw`w-11 h-11 rounded-full`, style]}
+				/>
+			</View>
 			<View
 				style={[
 					tw`absolute top-[-1] left-[-1] w-[1.125rem] h-[1.125rem] rounded-full border-2 border-white`,
